@@ -114,6 +114,10 @@ def find_changes(subdirs, path, output, num_tables):
     insert_changes = []
     delete_changes = []
 
+    table_files = [f for f in os.listdir(os.path.join(path, subdirs[0])) if f.endswith(file_extension())]
+    if not num_tables == -1:
+        table_files = table_files[0:num_tables]
+
     for subdir_index in range(len(subdirs)):
         if subdir_index == 0:
             continue
@@ -121,13 +125,13 @@ def find_changes(subdirs, path, output, num_tables):
         print(subdir)
         current_subdir_path = os.path.join(path, subdir)
         files_current_subdir = [f for f in os.listdir(current_subdir_path) if f.endswith(file_extension())]
-        if not num_tables == -1:
-            files_current_subdir = files_current_subdir[0:num_tables]
         daily_column_changes = []
         daily_table_changes = set()
         daily_insert_changes = set()
         daily_delete_changes = set()
-        for file_name in files_current_subdir:
+        for file_name in table_files:
+            if not file_name in files_current_subdir:
+                continue
             old_subdir_path = find_older_subdir(file_name, path, subdirs[:subdir_index])
             if old_subdir_path is None:
                 continue
