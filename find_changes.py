@@ -97,6 +97,8 @@ def find_older_subdir(file_name, path, subdirs):
         if num_days > 7:
             return None
         subdir_path = os.path.join(path, subdir)
+        if not os.path.isdir(subdir_path):
+            continue
         subdir_files = os.listdir(subdir_path)
         if file_name in subdir_files:
             return subdir_path
@@ -113,6 +115,7 @@ def save_changes(changes, file_name):
 class DateJob:
     subdir: str
     subdir_index: int
+
 
 class NewTables:
     date: str
@@ -164,6 +167,9 @@ def find_daily_changes(jobs, path, num_tables, output, subdirs, new_table_queue)
 
         print(job.subdir)
         current_subdir_path = os.path.join(path, job.subdir)
+        if not os.path.isdir(current_subdir_path):
+            continue
+
         table_files = [f for f in os.listdir(current_subdir_path) if f.endswith(file_extension())]
         if not num_tables == -1:
             table_files = table_files[0:num_tables]
