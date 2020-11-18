@@ -6,21 +6,36 @@ Output: for now: console output about number of changes and plots
 """
 
 import argparse
+
 import matplotlib.pyplot as plt
 import os
 import pickle
+import seaborn as sns
+import pandas as pd
 
 
 def plot_distribution(changes, granularity, change_type, dates, out_path):
     # TODO: combine figures nicely?
+    sns.set()
+    sns.set_theme(style="whitegrid")
     plt.xlabel('Day')
+    plt.xticks(rotation=45)
     plt.ylabel('# Changes')
     plt.title(f"Distribution of {change_type}s in {granularity}s over time")
-    plt.bar(dates, changes)
+    plt.tight_layout()
+    plt.bar(dates, changes, color="orange")
     plt.savefig(os.path.join(out_path, f"Distribution_{granularity}_{change_type}"))
     plt.close()
     pass
 
+
+def plot_distribution_sb(changes, granularity, change_type, dates, out_path):
+    sns.set()
+    dict = {"Days": dates, "Change Counts": changes}
+    df = pd.DataFrame(dict)
+    sns.set_theme(style="whitegrid")
+    sns.barplot(x="Days", y="Change Counts", data=df, color="orange")
+    plt.savefig(os.path.join(out_path, f"Distribution_{granularity}_{change_type}"))
 
 def get_changetype(file):
     return os.path.basename(file).split(".")[0]
