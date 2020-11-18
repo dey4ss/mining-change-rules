@@ -49,6 +49,7 @@ def changes_per_file(file_name):
 def calculate_changes(in_path, out_path):
     change_dates = [changefile.split("_")[0] for changefile in os.listdir(os.path.join(in_path))]
     change_dates = list(set(change_dates))
+    change_dates.sort()
     change_types = ["update", "add", "delete"]
 
     for change_type in change_types:
