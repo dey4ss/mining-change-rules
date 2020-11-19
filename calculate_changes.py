@@ -6,16 +6,14 @@ Output: for now: console output about number of changes and plots
 """
 
 import argparse
-
 import matplotlib.pyplot as plt
 import os
-import pickle
 import seaborn as sns
 import pandas as pd
 
 
 def plot_distribution(changes, granularity, change_type, dates, out_path):
-    # TODO: combine figures nicely?
+    # TODO: maybe move this to the other script
     sns.set()
     sns.set_theme(style="whitegrid")
     plt.xlabel('Day')
@@ -26,7 +24,6 @@ def plot_distribution(changes, granularity, change_type, dates, out_path):
     plt.bar(dates, changes, color="orange")
     plt.savefig(os.path.join(out_path, f"Distribution_{granularity}_{change_type}"))
     plt.close()
-    pass
 
 
 def plot_distribution_sb(changes, granularity, change_type, dates, out_path):
@@ -36,6 +33,7 @@ def plot_distribution_sb(changes, granularity, change_type, dates, out_path):
     sns.set_theme(style="whitegrid")
     sns.barplot(x="Days", y="Change Counts", data=df, color="orange")
     plt.savefig(os.path.join(out_path, f"Distribution_{granularity}_{change_type}"))
+
 
 def get_changetype(file):
     return os.path.basename(file).split(".")[0]
@@ -67,21 +65,27 @@ def calculate_changes(in_path, out_path):
     change_dates.sort()
     change_types = ["update", "add", "delete"]
 
+    df_column_names = ["dates", "change_type", "table", "column", "row", "field"]  # add "whole_table", "whole_column", "whole_row"
+    df_all = pd.DataFrame(columns=df_column_names)
+
     for change_type in change_types:
+        df_round = pd.DataFrame(columns=df_column_names)
+        df_round["dates"] = change_dates
+        df_round["change_type"] = [change_type for i in range(len(change_dates))]
         table_changes_count = []
         col_changes_count = []
         row_changes_count = []
         field_changes_count = []
 
         for date in change_dates:
-            print(date)
+            # print(date)
             change_file = os.path.join(in_path, f"{date}_{change_type}.csv")
             tc, cc, rc, fc = changes_per_file(change_file)
             table_changes_count.append(len(tc))
             col_changes_count.append(len(cc))
             row_changes_count.append(len(rc))
             field_changes_count.append(fc)
-            print(f"{change_type} table:{len(tc)}, column:{len(cc)}, row:{len(rc)}, field: {fc}\n")
+            # print(f"{change_type} table:{len(tc)}, column:{len(cc)}, row:{len(rc)}, field: {fc}\n")
 
         # plot
         plot_distribution(table_changes_count, "table", change_type, change_dates, out_path)
@@ -89,12 +93,17 @@ def calculate_changes(in_path, out_path):
         plot_distribution(row_changes_count, "row", change_type, change_dates, out_path)
         plot_distribution(field_changes_count, "field", change_type, change_dates, out_path)
 
-        changes_to_save = {"table": table_changes_count,
-                           "column": col_changes_count,
-                           "row": row_changes_count,
-                           "field": field_changes_count}
-        with open(os.path.join(out_path, f"pickled_{change_type}"), "wb+") as save_file:
-            pickle.dump(changes_to_save, save_file)
+        df_round["table"] = table_changes_count
+        df_round["column"] = col_changes_count
+        df_round["row"] = row_changes_count
+        df_round["field"] = field_changes_count
+
+        if df_all.empty:
+            df_all = df_round.copy(deep=False)
+        else:
+            df_all = df_all.append(df_round, ignore_index=True)
+
+    pd.to_pickle(df_all, os.path.join(out_path, f"pickled_df"))
 
 
 def parse_args():
