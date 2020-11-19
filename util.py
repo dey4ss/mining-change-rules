@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 from enum import Enum, auto, unique
 
+
 def date_range(start, end):
     timestamps = pd.date_range(start, end).tolist()
     return [timestamp.date().isoformat() for timestamp in timestamps]
@@ -9,6 +10,7 @@ def date_range(start, end):
 
 def file_extension():
     return ".json_" if sys.platform.startswith("win") else ".json?"
+
 
 @unique
 class Entity(Enum):
@@ -73,4 +75,3 @@ class Field:
         if level == Entity.Field:
             return ";".join([self.table, self.column, self.row])
         raise ValueError("Unsupported entity.")
-

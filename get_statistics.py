@@ -14,7 +14,7 @@ def make_boxplot(df, entity, out_path):
     plt.ylabel("Changes")
     plt.title(f"Amount of changes in {entity}s")
     plt.tight_layout()
-    sns.boxplot(x=df["change_type"], y=df[entity],  width=0.3)
+    sns.boxplot(x=df["change_type"], y=df[entity], width=0.3)
     plt.savefig(os.path.join(out_path, f"Boxplot_{entity}"))
     plt.close()
 
@@ -45,8 +45,9 @@ def load_dataframe(path):
 
 
 def parse_args():
-    ap = argparse.ArgumentParser(description="Generates plots and statistics from a dataframe which contains "
-                                             "change counts.")
+    ap = argparse.ArgumentParser(
+        description="Generates plots and statistics from a dataframe which contains " "change counts."
+    )
     ap.add_argument("file", type=str, help="Path to the pickled dataframe")
     ap.add_argument("--output", type=str, help="Output directory. Default ./plots", default="plots")
     return vars(ap.parse_args())

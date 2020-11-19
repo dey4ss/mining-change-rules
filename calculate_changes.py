@@ -16,9 +16,9 @@ def plot_distribution(changes, granularity, change_type, dates, out_path):
     # TODO: maybe move this to the other script
     sns.set()
     sns.set_theme(style="whitegrid")
-    plt.xlabel('Day')
+    plt.xlabel("Day")
     plt.xticks(rotation=45)
-    plt.ylabel('# Changes')
+    plt.ylabel("# Changes")
     plt.title(f"Distribution of {change_type}s in {granularity}s over time")
     plt.tight_layout()
     plt.bar(dates, changes, color="orange")
@@ -65,7 +65,14 @@ def calculate_changes(in_path, out_path):
     change_dates.sort()
     change_types = ["update", "add", "delete"]
 
-    df_column_names = ["dates", "change_type", "table", "column", "row", "field"]  # add "whole_table", "whole_column", "whole_row"
+    df_column_names = [
+        "dates",
+        "change_type",
+        "table",
+        "column",
+        "row",
+        "field",
+    ]  # add "whole_table", "whole_column", "whole_row"
     df_all = pd.DataFrame(columns=df_column_names)
 
     for change_type in change_types:
@@ -109,7 +116,9 @@ def calculate_changes(in_path, out_path):
 def parse_args():
     ap = argparse.ArgumentParser(description="Calculates changes for higher levels from the field level changes.")
     ap.add_argument("directory", type=str, help="Directory to the field change files.")
-    ap.add_argument("--output", type=str, help="Output directory. Default ./calculated_changes", default="calculated_changes")
+    ap.add_argument(
+        "--output", type=str, help="Output directory. Default ./calculated_changes", default="calculated_changes"
+    )
     return vars(ap.parse_args())
 
 

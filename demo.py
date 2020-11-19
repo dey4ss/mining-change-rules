@@ -22,5 +22,6 @@ def main():
     # Display frequent itemsets.
     model.freqItemsets.show(n=50, truncate=100)
 
+
 if __name__ == "__main__":
     main()
