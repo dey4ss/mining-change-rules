@@ -5,10 +5,10 @@ from util import date_range, file_extension, Entity, Field
 
 
 def parse_args():
-    ap = argparse.ArgumentParser(description="Extracts change transactions")
+    ap = argparse.ArgumentParser(description="Counts entity changes")
     ap.add_argument("change_dir", type=str, help="Directory of the change files.")
     ap.add_argument("data_dir", type=str, help="Directory of the original files.")
-    ap.add_argument("level", type=str, help="Entitiy to aggregate.", choices=Entity.string_representations())
+    ap.add_argument("level", type=str, help="Entity to aggregate.", choices=Entity.string_representations())
     return vars(ap.parse_args())
 
 

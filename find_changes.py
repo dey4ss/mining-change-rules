@@ -142,10 +142,18 @@ class DateJob:
     subdir: str
     subdir_index: int
 
+    def __init__(self, subdir, subdir_index):
+        self.subdir = subdir
+        self.subdir_index = subdir_index
+
 
 class NewTables:
     date: str
     num: int
+
+    def __init__(self, date, num):
+        self.date = date
+        self.num = num
 
 
 def find_changes(subdirs, path, output, num_tables, threads, distinguish_null):
@@ -163,12 +171,7 @@ def find_changes(subdirs, path, output, num_tables, threads, distinguish_null):
         for subdir_index in range(len(subdirs)):
             if subdir_index == 0:
                 continue
-            task = DateJob()
-            task.path = path
-            task.output = output
-            task.subdir = subdirs[subdir_index]
-            task.subdir_index = subdir_index
-            job_queue.put(task)
+            job_queue.put(DateJob(subdirs[subdir_index], subdir_index))
 
         for worker in workers:
             worker.start()
@@ -234,10 +237,7 @@ def find_daily_changes(jobs, path, num_tables, output, subdirs, new_table_queue,
         save_changes(column_add_delete, os.path.join(output, f"{job.subdir}_column_add_delete.csv"))
         save_changes(row_add_delete, os.path.join(output, f"{job.subdir}_row_add_delete.csv"))
         save_changes(new_tables, os.path.join(output, f"{job.subdir}_table_add.csv"))
-        new_tables_summary = NewTables()
-        new_tables_summary.date = job.subdir
-        new_tables_summary.num = len(new_tables)
-        new_table_queue.put(new_tables_summary)
+        new_table_queue.put(NewTables(job.subdir, len(new_tables)))
 
 
 def parse_args():
