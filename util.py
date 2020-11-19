@@ -65,7 +65,7 @@ class Field:
             return "table;column;row"
         raise ValueError("Unsupported entity.")
 
-    def get_csv(self, level: str) -> str:
+    def get_csv(self, level: Entity) -> str:
         if level == Entity.Table:
             return self.table
         if level == Entity.Column:
