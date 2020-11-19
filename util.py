@@ -44,14 +44,14 @@ class Field:
         return hash((self.table, self.column, self.row))
 
     @classmethod
-    def get_with_level(cls, level: Entity, table, column, row):
+    def get_with_level(cls, level, table, column, row):
         if level == Entity.Table:
-            return Entity(table, None, None, None)
+            return cls(table, None, None)
         if level == Entity.Column:
-            return Entity(table, column, None)
+            return cls(table, column, None)
         if level == Entity.Row:
-            return Entity(table, None, row)
-        return Entity(table, column, row)
+            return cls(table, None, row)
+        return cls(table, column, row)
 
     @classmethod
     def get_csv_header(cls, level: Entity) -> str:

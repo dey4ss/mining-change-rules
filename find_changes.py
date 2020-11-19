@@ -86,12 +86,14 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
                     n_field = n_fields[field_index]
                     if not n_field == o_field:
                         if distinguish_null:
-                            if is_null(n_field) and is_null(o_field):
+                            n_is_null = is_null(n_field)
+                            o_is_null = is_null(o_field)
+                            if n_is_null and o_is_null:
                                 continue
-                            if is_null(n_field):
+                            if n_is_null:
                                 delete_fields.append([table_id, attr, str(n_row["id"])])
                                 continue
-                            if is_null(o_field):
+                            if o_is_null:
                                 insert_fields.append([table_id, attr, str(n_row["id"])])
                                 continue
                         update_fields.append([table_id, attr, str(n_row["id"])])
