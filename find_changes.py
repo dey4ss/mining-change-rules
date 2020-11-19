@@ -3,19 +3,10 @@
 import argparse
 import json
 import os
-import pandas as pd
-import sys
 import queue
 import multiprocessing as mp
 
-
-def date_range(start, end):
-    timestamps = pd.date_range(start, end).tolist()
-    return [timestamp.date().isoformat() for timestamp in timestamps]
-
-
-def file_extension():
-    return ".json_" if sys.platform.startswith("win") else ".json?"
+from util import date_range, file_extension
 
 
 def find_row_match(rows, row_id):
@@ -28,7 +19,7 @@ def find_row_match(rows, row_id):
 def is_null(value):
     if value is None:
         return True
-    candidates = ["", "-", "/", "", "–", "—"]
+    candidates = ["-", "/", "", "–", "—"]
     if type(value) == str:
         val_strip = value.strip()
         if val_strip in candidates or val_strip.lower() == "null":
