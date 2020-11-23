@@ -134,7 +134,10 @@ def find_older_subdir(file_name, path, subdirs):
 def save_changes(changes, file_name):
     with open(file_name, "w", encoding="utf-8") as f:
         for change in changes:
-            f.write(";".join(change))
+            if type(change) == str:
+                f.write(change)
+            else:
+                f.write(";".join(change))
             f.write("\n")
 
 
