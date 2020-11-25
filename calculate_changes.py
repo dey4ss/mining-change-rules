@@ -121,13 +121,12 @@ def whole_changes(path, date):
     return df_whole_changes
 
 
-def calculate_changes(in_path, out_path):
+def calculate_changes(in_path, out_path, plots):
     change_dates = [
         changefile.split("_")[0] for changefile in os.listdir(os.path.join(in_path))
     ]
     change_dates = list(set(change_dates))
     change_dates.sort()
-    print(change_dates)
     change_types = ["update", "add", "delete"]
 
     df_column_names = ["dates", "change_type", "table", "column", "row", "field"]
@@ -160,33 +159,35 @@ def calculate_changes(in_path, out_path):
             else:
                 df_whole_changes = df_whole_changes.append(w_changes, ignore_index=True)
 
-            print(df_whole_changes)
-
             # print(f"{change_type} table:{len(tc)}, column:{len(cc)}, row:{len(rc)}, field: {fc}\n")
 
-        # leave out these plots for now
-        # plot_distribution(
-        #     table_changes_count, "table", change_type, change_dates, out_path
-        # )
-        # plot_distribution(
-        #     col_changes_count, "column", change_type, change_dates, out_path
-        # )
-        # plot_distribution(row_changes_count, "row", change_type, change_dates, out_path)
-        # plot_distribution(
-        #     field_changes_count, "field", change_type, change_dates, out_path
-        # )
+        if plots:
+            plot_distribution(
+                table_changes_count, "table", change_type, change_dates, out_path
+            )
+            plot_distribution(
+                col_changes_count, "column", change_type, change_dates, out_path
+            )
+            plot_distribution(
+                row_changes_count, "row", change_type, change_dates, out_path
+            )
+            plot_distribution(
+                field_changes_count, "field", change_type, change_dates, out_path
+            )
 
         df_round["table"] = table_changes_count
         df_round["column"] = col_changes_count
         df_round["row"] = row_changes_count
         df_round["field"] = field_changes_count
 
+        df_round = df_round.merge(df_whole_changes, on=["dates", "change_type"])
+
         if df_all.empty:
             df_all = df_round.copy(deep=False)
         else:
             df_all = df_all.append(df_round, ignore_index=True)
-        # print(pd.concat(df_all, df_whole_changes, ignore_index=True))
-        print(df_all.merge(df_whole_changes, on=["dates", "change_type"]))
+
+        print(df_all)
 
     pd.to_pickle(df_all, os.path.join(out_path, f"pickled_df"))
 
@@ -202,6 +203,7 @@ def parse_args():
         help="Output directory. Default ./calculated_changes",
         default="calculated_changes",
     )
+    ap.add_argument("--plots", help="Whether bar plots should be created")
     return vars(ap.parse_args())
 
 
@@ -209,7 +211,7 @@ def main():
     args = parse_args()
     if not os.path.isdir(args["output"]):
         os.makedirs(args["output"])
-    calculate_changes(args["directory"], args["output"])
+    calculate_changes(args["directory"], args["output"], args["plots"])
 
 
 if __name__ == "__main__":
