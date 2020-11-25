@@ -3,19 +3,10 @@
 import argparse
 import json
 import os
-import pandas as pd
-import sys
 import queue
 import multiprocessing as mp
 
-
-def date_range(start, end):
-    timestamps = pd.date_range(start, end).tolist()
-    return [timestamp.date().isoformat() for timestamp in timestamps]
-
-
-def file_extension():
-    return ".json_" if sys.platform.startswith("win") else ".json?"
+from util import date_range, file_extension
 
 
 def find_row_match(rows, row_id):
@@ -28,7 +19,7 @@ def find_row_match(rows, row_id):
 def is_null(value):
     if value is None:
         return True
-    candidates = ["", "-", "/", "", "–", "—"]
+    candidates = ["-", "/", "", "–", "—"]
     if type(value) == str:
         val_strip = value.strip()
         if val_strip in candidates or val_strip.lower() == "null":
@@ -95,12 +86,14 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
                     n_field = n_fields[field_index]
                     if not n_field == o_field:
                         if distinguish_null:
-                            if is_null(n_field) and is_null(o_field):
+                            n_is_null = is_null(n_field)
+                            o_is_null = is_null(o_field)
+                            if n_is_null and o_is_null:
                                 continue
-                            if is_null(n_field):
+                            if n_is_null:
                                 delete_fields.append([table_id, attr, str(n_row["id"])])
                                 continue
-                            if is_null(o_field):
+                            if o_is_null:
                                 insert_fields.append([table_id, attr, str(n_row["id"])])
                                 continue
                         update_fields.append([table_id, attr, str(n_row["id"])])
@@ -141,7 +134,10 @@ def find_older_subdir(file_name, path, subdirs):
 def save_changes(changes, file_name):
     with open(file_name, "w", encoding="utf-8") as f:
         for change in changes:
-            f.write(";".join(change))
+            if type(change) == str:
+                f.write(change)
+            else:
+                f.write(";".join(change))
             f.write("\n")
 
 
@@ -149,10 +145,18 @@ class DateJob:
     subdir: str
     subdir_index: int
 
+    def __init__(self, subdir, subdir_index):
+        self.subdir = subdir
+        self.subdir_index = subdir_index
+
 
 class NewTables:
     date: str
     num: int
+
+    def __init__(self, date, num):
+        self.date = date
+        self.num = num
 
 
 def find_changes(subdirs, path, output, num_tables, threads, distinguish_null):
@@ -170,12 +174,7 @@ def find_changes(subdirs, path, output, num_tables, threads, distinguish_null):
         for subdir_index in range(len(subdirs)):
             if subdir_index == 0:
                 continue
-            task = DateJob()
-            task.path = path
-            task.output = output
-            task.subdir = subdirs[subdir_index]
-            task.subdir_index = subdir_index
-            job_queue.put(task)
+            job_queue.put(DateJob(subdirs[subdir_index], subdir_index))
 
         for worker in workers:
             worker.start()
@@ -241,10 +240,7 @@ def find_daily_changes(jobs, path, num_tables, output, subdirs, new_table_queue,
         save_changes(column_add_delete, os.path.join(output, f"{job.subdir}_column_add_delete.csv"))
         save_changes(row_add_delete, os.path.join(output, f"{job.subdir}_row_add_delete.csv"))
         save_changes(new_tables, os.path.join(output, f"{job.subdir}_table_add.csv"))
-        new_tables_summary = NewTables()
-        new_tables_summary.date = job.subdir
-        new_tables_summary.num = len(new_tables)
-        new_table_queue.put(new_tables_summary)
+        new_table_queue.put(NewTables(job.subdir, len(new_tables)))
 
 
 def parse_args():

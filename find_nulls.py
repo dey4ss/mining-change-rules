@@ -37,7 +37,7 @@ def find_nulls(path, start, end, threads):
 
 def find_daily_nulls(job_queue, path, null_values, null_values_lock, n):
     print(f"[Start Worker {n}]")
-    candidates = ["", "-", "/", "", "–", "—"]
+    candidates = ["-", "/", "", "–", "—"]
     while True:
         date = None
         try:
@@ -60,21 +60,21 @@ def find_daily_nulls(job_queue, path, null_values, null_values_lock, n):
             with open(os.path.join(current_dir, file_name), "r", encoding="utf-8") as f:
                 data = json.loads(f.read())
 
-        for row in data["rows"]:
-            for value in row["fields"]:
-                null_val = 1
-                if value is None:
-                    null_val = value
-                elif type(value) == str:
-                    val_strip = value.strip()
-                    if val_strip in candidates or val_strip.lower() == "null":
+            for row in data["rows"]:
+                for value in row["fields"]:
+                    null_val = 1
+                    if value is None:
                         null_val = value
-                if not null_val == 1:
-                    null_values_lock.acquire()
-                    if not null_val in null_values:
-                        null_values[null_val] = 0
-                    null_values[null_val] += 1
-                    null_values_lock.release()
+                    elif type(value) == str:
+                        val_strip = value.strip()
+                        if val_strip in candidates or val_strip.lower() == "null":
+                            null_val = value
+                    if not null_val == 1:
+                        null_values_lock.acquire()
+                        if not null_val in null_values:
+                            null_values[null_val] = 0
+                        null_values[null_val] += 1
+                        null_values_lock.release()
 
 
 def parse_args():

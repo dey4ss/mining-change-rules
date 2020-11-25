@@ -129,7 +129,14 @@ def calculate_changes(in_path, out_path, plots):
     change_dates.sort()
     change_types = ["update", "add", "delete"]
 
-    df_column_names = ["dates", "change_type", "table", "column", "row", "field"]
+    df_column_names = [
+        "dates",
+        "change_type",
+        "table",
+        "column",
+        "row",
+        "field"
+    ]
     df_all = pd.DataFrame(columns=df_column_names)
 
     for change_type in change_types:
