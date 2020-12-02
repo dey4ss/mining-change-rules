@@ -129,14 +129,7 @@ def calculate_changes(in_path, out_path, plots):
     change_dates.sort()
     change_types = ["update", "add", "delete"]
 
-    df_column_names = [
-        "dates",
-        "change_type",
-        "table",
-        "column",
-        "row",
-        "field"
-    ]
+    df_column_names = ["dates", "change_type", "table", "column", "row", "field"]
     df_all = pd.DataFrame(columns=df_column_names)
 
     for change_type in change_types:
@@ -187,7 +180,7 @@ def calculate_changes(in_path, out_path, plots):
         df_round["row"] = row_changes_count
         df_round["field"] = field_changes_count
 
-        df_round = df_round.merge(df_whole_changes, on=["dates", "change_type"])
+        df_round = df_round.merge(df_whole_changes, on=["dates", "change_type"], how="left")
 
         if df_all.empty:
             df_all = df_round.copy(deep=False)
