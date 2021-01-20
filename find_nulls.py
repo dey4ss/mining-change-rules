@@ -28,7 +28,8 @@ def find_nulls(path, start, end, threads):
         for worker in workers:
             worker.join()
 
-        with open("null_values.txt", "w") as f:
+        with open("null_values.csv", "w", encoding="utf-8") as f:
+            f.write("value;count\n")
             null_values_lock.acquire()
             for val in null_values:
                 f.write(f"{val};{null_values[val]}\n")
@@ -37,7 +38,7 @@ def find_nulls(path, start, end, threads):
 
 def find_daily_nulls(job_queue, path, null_values, null_values_lock, n):
     print(f"[Start Worker {n}]")
-    candidates = ["-", "/", "", "–", "—"]
+    candidates = ["-", "/", "", "–", "—", "%"]
     while True:
         date = None
         try:
@@ -55,6 +56,7 @@ def find_daily_nulls(job_queue, path, null_values, null_values_lock, n):
         print(f"{date} [Worker {n}]")
 
         files = [f for f in os.listdir(current_dir) if f.endswith(file_extension())]
+        my_null_values = dict()
 
         for file_name in files:
             with open(os.path.join(current_dir, file_name), "r", encoding="utf-8") as f:
@@ -70,11 +72,15 @@ def find_daily_nulls(job_queue, path, null_values, null_values_lock, n):
                         if val_strip in candidates or val_strip.lower() == "null":
                             null_val = value
                     if not null_val == 1:
-                        null_values_lock.acquire()
-                        if not null_val in null_values:
-                            null_values[null_val] = 0
-                        null_values[null_val] += 1
-                        null_values_lock.release()
+                        if not null_val in my_null_values:
+                            my_null_values[null_val] = 0
+                        my_null_values[null_val] += 1
+        null_values_lock.acquire()
+        for null_val in my_null_values:
+            if not null_val in null_values:
+                null_values[null_val] = 0
+            null_values[null_val] += my_null_values[null_val]
+        null_values_lock.release()
 
 
 def parse_args():

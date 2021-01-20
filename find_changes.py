@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import queue
+import sys
 import multiprocessing as mp
 
 from util import date_range, file_extension
@@ -19,7 +20,7 @@ def find_row_match(rows, row_id):
 def is_null(value):
     if value is None:
         return True
-    candidates = ["-", "/", "", "–", "—"]
+    candidates = ["-", "/", "", "–", "—", "%"]
     if type(value) == str:
         val_strip = value.strip()
         if val_strip in candidates or val_strip.lower() == "null":
@@ -35,9 +36,10 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
     n_attributes = n["attributes"]
     n_attr_map = {}
     n_attr_map_inv = {}
-    for attr in n_attributes:
-        n_attr_map[attr["position"]] = attr["name"]
-        n_attr_map_inv[attr["name"]] = attr["position"]
+    for attr_index in range(len(n_attributes)):
+        attr = n_attributes[attr_index]
+        n_attr_map[attr_index] = attr["id"]
+        n_attr_map_inv[attr["id"]] = attr_index
     update_fields = list()
     delete_fields = list()
     insert_fields = list()
@@ -46,11 +48,11 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
 
     if old_dir is None:
         for n_row in n_rows:
-            for attr in n_attributes:
-                insert_fields.append([table_id, attr["name"], str(n_row["id"])])
-            row_add_delete.append(["add", table_id, str(n_row["id"])])
-        for attr in n_attributes:
-            column_add_delete.append(["add", table_id, attr["name"]])
+            for attr in n_attr_map_inv:
+                insert_fields.append([table_id, str(attr), str(n_row["id"])])
+            row_add_delete.append(["insert", table_id, str(n_row["id"])])
+        for attr in n_attr_map_inv:
+            column_add_delete.append(["insert", table_id, str(attr)])
         return update_fields, delete_fields, insert_fields, table_id, column_add_delete, row_add_delete
 
     with open(f"{old_dir}{os.sep}{table_id}{file_extension()}", encoding="utf-8") as f:
@@ -60,16 +62,17 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
     o_attributes = o["attributes"]
     o_attr_map = {}
     o_attr_map_inv = {}
-    for attr in o_attributes:
-        o_attr_map[attr["name"]] = attr["position"]
-        o_attr_map_inv[attr["position"]] = attr["name"]
+    for attr_index in range(len(o_attributes)):
+        attr = o_attributes[attr_index]
+        o_attr_map[attr["id"]] = attr_index
+        o_attr_map_inv[attr_index] = attr["id"]
 
     for attr in n_attr_map_inv:
         if not attr in o_attr_map:
-            column_add_delete.append(["add", table_id, attr])
+            column_add_delete.append(["insert", table_id, str(attr)])
     for attr in o_attr_map:
         if not attr in n_attr_map_inv:
-            column_add_delete.append(["delete", table_id, attr])
+            column_add_delete.append(["delete", table_id, str(attr)])
 
     for n_row in n_rows:
         o_row = find_row_match(o_rows, n_row["id"])
@@ -80,7 +83,7 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
                 for field_index in range(len(n_fields)):
                     attr = n_attr_map[field_index]
                     if not attr in o_attr_map:
-                        insert_fields.append([table_id, attr, str(n_row["id"])])
+                        insert_fields.append([table_id, str(attr), str(n_row["id"])])
                         continue
                     o_field = o_fields[o_attr_map[n_attr_map[field_index]]]
                     n_field = n_fields[field_index]
@@ -91,17 +94,17 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
                             if n_is_null and o_is_null:
                                 continue
                             if n_is_null:
-                                delete_fields.append([table_id, attr, str(n_row["id"])])
+                                delete_fields.append([table_id, str(attr), str(n_row["id"])])
                                 continue
                             if o_is_null:
-                                insert_fields.append([table_id, attr, str(n_row["id"])])
+                                insert_fields.append([table_id, str(attr), str(n_row["id"])])
                                 continue
-                        update_fields.append([table_id, attr, str(n_row["id"])])
+                        update_fields.append([table_id, str(attr), str(n_row["id"])])
         else:
             for field_index in range(len(n_fields)):
                 attr = n_attr_map[field_index]
-                insert_fields.append([table_id, attr, str(n_row["id"])])
-            row_add_delete.append(["add", table_id, str(n_row["id"])])
+                insert_fields.append([table_id, str(attr), str(n_row["id"])])
+            row_add_delete.append(["insert", table_id, str(n_row["id"])])
     for o_row in o_rows:
         n_row = find_row_match(n_rows, o_row["id"])
         o_fields = o_row["fields"]
@@ -110,11 +113,11 @@ def find_field_changes(table_id, new_dir, old_dir, distinguish_null):
             for field_index in range(len(o_fields)):
                 attr = o_attr_map_inv[field_index]
                 if not attr in n_attr_map_inv:
-                    delete_fields.append([table_id, attr, str(o_row["id"])])
+                    delete_fields.append([table_id, str(attr), str(o_row["id"])])
         else:
             for field_index in range(len(o_fields)):
                 attr = o_attr_map_inv[field_index]
-                delete_fields.append([table_id, attr, str(o_row["id"])])
+                delete_fields.append([table_id, str(attr), str(o_row["id"])])
             row_add_delete.append(["delete", table_id, str(o_row["id"])])
     return update_fields, delete_fields, insert_fields, None, column_add_delete, row_add_delete
 
@@ -134,7 +137,7 @@ def find_older_subdir(file_name, path, subdirs):
 def save_changes(changes, file_name):
     with open(file_name, "w", encoding="utf-8") as f:
         for change in changes:
-            if type(change) == str:
+            if not type(change) == list:
                 f.write(change)
             else:
                 f.write(";".join(change))
@@ -159,21 +162,35 @@ class NewTables:
         self.num = num
 
 
-def find_changes(subdirs, path, output, num_tables, threads, distinguish_null):
+def find_changes(
+    subdirs, path, output, num_tables, threads, distinguish_null, offset, included_tables, excluded_tables
+):
     with mp.Manager() as manager:
         job_queue = manager.Queue()
         new_table_queue = manager.Queue()
         workers = [
             mp.Process(
                 target=find_daily_changes,
-                args=(job_queue, path, num_tables, output, subdirs, new_table_queue, distinguish_null, f"{n}".rjust(2)),
+                args=(
+                    job_queue,
+                    path,
+                    num_tables,
+                    output,
+                    subdirs,
+                    new_table_queue,
+                    distinguish_null,
+                    included_tables,
+                    excluded_tables,
+                    f"{n}".rjust(2),
+                ),
             )
             for n in range(threads)
         ]
 
-        for subdir_index in range(len(subdirs)):
+        for subdir_index in range(offset, len(subdirs)):
             if subdir_index == 0:
                 continue
+
             job_queue.put(DateJob(subdirs[subdir_index], subdir_index))
 
         for worker in workers:
@@ -191,7 +208,22 @@ def find_changes(subdirs, path, output, num_tables, threads, distinguish_null):
                     return
 
 
-def find_daily_changes(jobs, path, num_tables, output, subdirs, new_table_queue, distinguish_null, n):
+def get_tables_from_file(file_name):
+    if not file_name:
+        return set()
+    tables = set()
+    with open(file_name, "r") as f:
+        for line in f:
+            line_cleaned = line.strip()
+            if line_cleaned in ["table_id", ""]:
+                continue
+            tables.add(line_cleaned)
+    return tables
+
+
+def find_daily_changes(
+    jobs, path, num_tables, output, subdirs, new_table_queue, distinguish_null, included_tables, excluded_tables, n
+):
     print(f"[Start Worker {n}]")
     while True:
         job = None
@@ -223,6 +255,8 @@ def find_daily_changes(jobs, path, num_tables, output, subdirs, new_table_queue,
         for file_name in table_files:
             old_subdir_path = find_older_subdir(file_name, path, subdirs[: job.subdir_index])
             file_id = file_name[: -len(file_extension())]
+            if (len(included_tables) > 0 and not file_id in included_tables) or file_id in excluded_tables:
+                continue
             t_updates, t_deletes, t_inserts, t_table, t_columns, t_rows = find_field_changes(
                 file_id, current_subdir_path, old_subdir_path, distinguish_null
             )
@@ -235,33 +269,49 @@ def find_daily_changes(jobs, path, num_tables, output, subdirs, new_table_queue,
                 new_tables.add(t_table)
 
         save_changes(updates, os.path.join(output, f"{job.subdir}_update.csv"))
-        save_changes(inserts, os.path.join(output, f"{job.subdir}_add.csv"))
+        save_changes(inserts, os.path.join(output, f"{job.subdir}_insert.csv"))
         save_changes(deletes, os.path.join(output, f"{job.subdir}_delete.csv"))
-        save_changes(column_add_delete, os.path.join(output, f"{job.subdir}_column_add_delete.csv"))
-        save_changes(row_add_delete, os.path.join(output, f"{job.subdir}_row_add_delete.csv"))
-        save_changes(new_tables, os.path.join(output, f"{job.subdir}_table_add.csv"))
+        save_changes(column_add_delete, os.path.join(output, f"{job.subdir}_column_insert_delete.csv"))
+        save_changes(row_add_delete, os.path.join(output, f"{job.subdir}_row_insert_delete.csv"))
+        save_changes(new_tables, os.path.join(output, f"{job.subdir}_table_insert.csv"))
         new_table_queue.put(NewTables(job.subdir, len(new_tables)))
 
 
 def parse_args():
     ap = argparse.ArgumentParser(description="Extracts change transactions")
     ap.add_argument("directory", type=str, help="Directory of the change files.")
-    ap.add_argument("--start", type=str, help="Start date. Default 2019-11-01", default="2019-11-01")
-    ap.add_argument("--end", type=str, help="End date. Default 2019-11-08", default="2019-11-08")
+    ap.add_argument("--start", type=str, help="Start date. Default 2020-05-01", default="2020-05-01")
+    ap.add_argument("--end", type=str, help="End date. Default 2020-11-01", default="2020-11-01")
+    ap.add_argument("--base_date", type=str, help="Date of whole data start. Default 2019-11-01", default="2019-11-01")
     ap.add_argument("--output", type=str, help="Output directory. Default ./changes", default="changes")
     ap.add_argument("--num_tables", type=int, help="Number of tables per date. -1 means all. Default -1", default=-1)
     ap.add_argument("--threads", type=int, help="Number of threads. Default 2", default=2)
     ap.add_argument("--distinguish_null", action="store_true", help="Count null value changes as insert/delete.")
+    ap.add_argument(
+        "--included_tables", type=str, default="", help="File with tables to include. If not specified, use all."
+    )
+    ap.add_argument("--excluded_tables", type=str, default="", help="File with tables to exclude.")
     return vars(ap.parse_args())
 
 
 def main():
     args = parse_args()
+    not_considered_subdirs = date_range(args["base_date"], args["start"])
     if not os.path.isdir(args["output"]):
         os.makedirs(args["output"])
-    subdirs = date_range(args["start"], args["end"])
+    subdirs = date_range(args["base_date"], args["end"])
+    included_tables = get_tables_from_file(args["included_tables"])
+    excluded_tables = get_tables_from_file(args["excluded_tables"])
     find_changes(
-        subdirs, args["directory"], args["output"], args["num_tables"], args["threads"], args["distinguish_null"]
+        subdirs,
+        args["directory"],
+        args["output"],
+        args["num_tables"],
+        args["threads"],
+        args["distinguish_null"],
+        len(not_considered_subdirs) - 1,
+        included_tables,
+        excluded_tables,
     )
 
 

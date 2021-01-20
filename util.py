@@ -9,7 +9,7 @@ def date_range(start, end):
 
 
 def file_extension():
-    return ".json_" if sys.platform.startswith("win") else ".json?"
+    return ".json?_rowsAndColumnsMatched.json?"
 
 
 @unique
@@ -21,7 +21,7 @@ class Entity(Enum):
 
     @classmethod
     def string_representations(cls):
-        return [entity.name.lower() for entity in list(Entity)]
+        return [entity.to_str() for entity in Entity]
 
     def to_str(self):
         return self.name.lower()
