@@ -9,7 +9,7 @@ def date_range(start, end):
 
 
 def file_extension():
-    return ".json?_rowsAndColumnsMatched.json?"
+    return ".json?"
 
 
 @unique

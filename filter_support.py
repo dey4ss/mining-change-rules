@@ -21,10 +21,10 @@ def parse_args():
     ap.add_argument("change_dir", type=str, help="Directory of the change files.")
     ap.add_argument("--threads", type=int, help=f"Number of threads. Default {thread_default}", default=thread_default)
     ap.add_argument(
-        "--min_supp", type=int, help=f"Minimal support. Default {min_supp_default}", default=min_supp_default
+        "--min_supp", type=float, help=f"Minimal support. Default {min_supp_default}", default=min_supp_default
     )
     ap.add_argument(
-        "--max_supp", type=int, help=f"Maximal support. Default {max_supp_default}", default=max_supp_default
+        "--max_supp", type=float, help=f"Maximal support. Default {max_supp_default}", default=max_supp_default
     )
     ap.add_argument("--pp", action="store_true", help=f"Pretty print output JSON. Default false")
 
