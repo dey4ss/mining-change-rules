@@ -19,25 +19,37 @@ def make_boxplot(df, entity, out_path):
     plt.close()
 
 
-def collect_statistic(df, alphabet):
-    # return overall and average amount of changes for every granularity
-
-    pass
-
-
-def calculate_alphabet_size(df):
-    # calculates the number of possible events for a given granularity
-    pass
-
-
-def make_plots(in_path, out_path):
-    count_df = load_dataframe(in_path)
-    print(count_df)
-    granularity = ["table", "column", "row", "field"]  # add "whole_table", "whole_column", "whole_row"
+def make_plots(count_df, granularity, out_path):
     for entity in granularity:
         make_boxplot(count_df, entity, out_path)
-    # alphabet = calculate_alphabet_size(count_df)
-    # collect_statistic(count_df, alphabet)
+
+
+def save_stats(df, granularity):
+    for change_type in ["update", "add", "delete"]:
+        sums = ["sum", change_type]
+        avgs = ["avg", change_type]
+        for entity in granularity:
+            sums.append((df.loc[df["change_type"] == change_type])[entity].sum())
+            avgs.append((df.loc[df["change_type"] == change_type])[entity].mean())
+        df_stats = pd.DataFrame(
+            [sums, avgs],
+            columns=[
+                "dates",
+                "change_type",
+                "table",
+                "column",
+                "row",
+                "field",
+                "whole_table",
+                "whole_column",
+                "whole_row",
+            ],
+        )
+        df = df.append(
+            df_stats,
+            ignore_index=True,
+        )
+    return df
 
 
 def load_dataframe(path):
@@ -46,10 +58,13 @@ def load_dataframe(path):
 
 def parse_args():
     ap = argparse.ArgumentParser(
-        description="Generates plots and statistics from a dataframe which contains " "change counts."
+        description="Generates plots and statistics from a dataframe which contains "
+        "change counts."
     )
     ap.add_argument("file", type=str, help="Path to the pickled dataframe")
-    ap.add_argument("--output", type=str, help="Output directory. Default ./plots", default="plots")
+    ap.add_argument(
+        "--output", type=str, help="Output directory. Default ./plots", default="plots"
+    )
     return vars(ap.parse_args())
 
 
@@ -57,7 +72,22 @@ def main():
     args = parse_args()
     if not os.path.isdir(args["output"]):
         os.makedirs(args["output"])
-    make_plots(args["file"], args["output"])
+
+    granularity = [
+        "table",
+        "column",
+        "row",
+        "field",
+        "whole_table",
+        "whole_column",
+        "whole_row",
+    ]
+
+    count_df = load_dataframe(args["file"])
+    stats = save_stats(count_df, granularity)
+    make_plots(count_df, granularity, args["output"])
+
+    pd.to_pickle(stats, os.path.join(args["output"], f"stats_df"))
 
 
 if __name__ == "__main__":
