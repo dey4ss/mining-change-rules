@@ -163,7 +163,7 @@ def get_hist(all_changes, daily_changes, min_supp, max_supp, min_conf, days, num
                 remaining_other_occurences = len(occurences_other) - hist.right_occurences() + 1
                 remaining_change_occurences = len(occurences_change) - occurences_change.index(date)
                 possible_occurences = min(remaining_change_occurences, remaining_other_occurences)
-                can_reach_conf = (hist.abs_support() + remaining_other_occurences) / len(occurences_other) >= min_conf
+                can_reach_conf = (hist.abs_support() + possible_occurences) / len(occurences_other) >= min_conf
                 can_reach_sup = hist.abs_support() + possible_occurences >= support_threshold
 
                 if not (can_reach_conf and can_reach_sup):
