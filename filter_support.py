@@ -19,12 +19,23 @@ def parse_args():
         description="Generates a dictionary of changes with their occurences, filtered by support."
     )
     ap.add_argument("change_dir", type=str, help="Directory of the change files.")
-    ap.add_argument("--threads", type=int, help=f"Number of threads. Default {thread_default}", default=thread_default)
     ap.add_argument(
-        "--min_supp", type=float, help=f"Minimal support. Default {min_supp_default}", default=min_supp_default
+        "--threads",
+        type=int,
+        help=f"Number of threads. Default {thread_default}",
+        default=thread_default,
     )
     ap.add_argument(
-        "--max_supp", type=float, help=f"Maximal support. Default {max_supp_default}", default=max_supp_default
+        "--min_supp",
+        type=float,
+        help=f"Minimal support. Default {min_supp_default}",
+        default=min_supp_default,
+    )
+    ap.add_argument(
+        "--max_supp",
+        type=float,
+        help=f"Maximal support. Default {max_supp_default}",
+        default=max_supp_default,
     )
     ap.add_argument("--pp", action="store_true", help=f"Pretty print output JSON. Default false")
 
@@ -120,4 +131,10 @@ def main(change_dir, threads, min_supp, max_supp, pretty_print):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args["change_dir"], args["threads"], args["min_supp"], args["max_supp"], args["pp"])
+    main(
+        args["change_dir"],
+        args["threads"],
+        args["min_supp"],
+        args["max_supp"],
+        args["pp"],
+    )
