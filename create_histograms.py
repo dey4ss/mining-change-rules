@@ -141,6 +141,12 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
         # begin with real work:
         for consequent in consequents:
             antecedents = antecedent_candidates - pruned_combinations[consequent]
+            occurences_consequent = all_changes[consequent]
+            ind_today = occurences_consequent.index(date)
+            days_since_last_consequent_occurence = (
+                num_days if ind_today == 0 else days.index(date) - days.index(occurences_consequent[ind_today - 1])
+            )
+
             for antecedent in antecedents:
                 if antecedent == consequent:
                     continue
@@ -148,6 +154,12 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
                 hist = hists[antecedent][consequent]
                 occurences_antecedent = all_changes[antecedent]
                 occurences_consequent = all_changes[consequent]
+
+                # make sure that consequent has not occured in between
+                days_since_antecedent_occurence = active_changes[antecedent]
+                difference = days_since_antecedent_occurence - days_since_last_consequent_occurence
+                if difference >= 0:
+                    continue
 
                 # check if histogram is already created
                 # prune if min confidence or min support cannot be reached
@@ -176,7 +188,7 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
                     continue
 
                 # actually add value to histogram
-                hist.add_occurence(active_changes[antecedent])
+                hist.add_occurence(days_since_antecedent_occurence)
 
     end = datetime.now()
     print(f"saving: {end}")
@@ -187,15 +199,28 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
     del pruned_combinations
 
     # remove antecedents without consequents
-    # combinations with low min support / confidence have been removed previously
+    # combinations with low min support / confidence may not have been removed previously
     useless_antecedents = set()
+    useless_combinations = defaultdict(set)
     for antecedent, consequents in hists.items():
-        if len(consequents) == 0:
+        num_useless_combinations = 0
+        for consequent, hist in consequents.items():
+            if hist.abs_support() < min_supp_abs or hist.confidence() < min_conf:
+                useless_combinations[antecedent].add(consequent)
+                num_useless_combinations += 1
+        if len(consequents) == num_useless_combinations:
             useless_antecedents.add(antecedent)
-            continue
 
     for antecedent in useless_antecedents:
         del hists[antecedent]
+        try:
+            del useless_combinations[antecedent]
+        except KeyError:
+            pass
+
+    for antecedent, consequents in useless_combinations.items():
+        for consequent in consequents:
+            del hists[antecedent][consequent]
 
     result = {
         antecedent: {
@@ -204,7 +229,10 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
         for antecedent, consequents in hists.items()
     }
 
-    with open("histograms_tables-t.json", "w") as f:
+    num_rules = sum([len(consequents) for antecedent, consequents in hists.items()])
+    print(num_rules, "rules generated")
+
+    with open("histograms_tables-10.json", "w") as f:
         json.dump(result, f)
 
     print(f"end: {datetime.now()}")
@@ -238,6 +266,7 @@ def main():
         del all_changes[change]
 
     candidates = set(all_changes.keys())
+    # candidates = set(list(all_changes.keys())[:10])
 
     get_hist(
         all_changes,
