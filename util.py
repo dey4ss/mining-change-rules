@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+from collections import defaultdict
 from enum import Enum, auto, unique
 
 
@@ -10,6 +11,28 @@ def date_range(start, end):
 
 def file_extension():
     return ".json?"
+
+
+def read_rule(line):
+    parts = line.strip().split(";")
+    antecedent = parts[0]
+    consequent = parts[1]
+    support = int(parts[2])
+    confidence = float(parts[3])
+    lift = float(parts[4])
+    hist_str = parts[5][2:-2]
+    hist_parts = hist_str.split(",")
+    hist = [int(x) for x in hist_parts]
+    return antecedent, consequent, [support, confidence, lift, hist]
+
+
+def read_rules(file_name):
+    result = defaultdict(dict)
+    with open(file_name) as f:
+        for line in f:
+            antecedent, consequent, hist = read_rule(line)
+            result[antecedent][consequent] = hist
+    return result
 
 
 @unique
