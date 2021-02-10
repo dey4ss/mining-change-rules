@@ -194,7 +194,7 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
     print(f"saving: {end}")
     print("duration", end - start)
     del active_changes
-    del all_changes
+    # del all_changes
     del daily_changes
     del pruned_combinations
 
@@ -222,17 +222,23 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
         for consequent in consequents:
             del hists[antecedent][consequent]
 
+    lift = lambda ant, con, sup: sup / (len(all_changes[ant]) * len(all_changes[con]))
+    result_entry = lambda ant, con, histo: [
+        histo.abs_support(),
+        histo.confidence(),
+        lift(ant, con, histo.abs_support()),
+        histo.bins(),
+    ]
+
     result = {
-        antecedent: {
-            consequent: [hist.abs_support(), hist.confidence(), hist.bins()] for consequent, hist in consequents.items()
-        }
+        antecedent: {consequent: result_entry(antecedent, consequent, hist) for consequent, hist in consequents.items()}
         for antecedent, consequents in hists.items()
     }
 
     num_rules = sum([len(consequents) for antecedent, consequents in hists.items()])
     print(num_rules, "rules generated")
 
-    with open("histograms_tables-10.json", "w") as f:
+    with open("histograms_columns.json", "w") as f:
         json.dump(result, f)
 
     print(f"end: {datetime.now()}")

@@ -19,18 +19,18 @@ def parse_args():
     min_conf_default = 0.7
     thread_default = 10
     bin_default = 11
-    output_default = "histograms_lift.csv"
+    partition_default = 1000
 
     ap = argparse.ArgumentParser(
         description="Generates a dictionary of changes with their occurences, filtered by support."
     )
-    ap.add_argument("change_dir", type=str, help="Directory of the change files.")
+    ap.add_argument("change_dir", type=str, help="Directory of the change files")
     ap.add_argument(
         "change_file",
         type=str,
         help="File with occurences per change (expect Python dict as .json)",
     )
-    ap.add_argument("--output", type=str, help=f"Output file path. Default {output_default}", default=output_default)
+    ap.add_argument("output", type=str, help=f"Output file path")
     ap.add_argument(
         "--threads",
         type=int,
@@ -57,9 +57,15 @@ def parse_args():
     )
     ap.add_argument(
         "--num_bins",
-        type=float,
+        type=int,
         help=f"Bin count. Default {bin_default}",
         default=bin_default,
+    )
+    ap.add_argument(
+        "--partition_size",
+        type=int,
+        help=f"Partition Size. Default {partition_default}",
+        default=partition_default,
     )
     return vars(ap.parse_args())
 
@@ -231,49 +237,21 @@ def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min
     return hists
 
 
-def get_candidate_ranges(cores, num_candidates):
-    def calc_shares(c):
-        def is_prime(n):
-            for q in range(2, math.ceil(math.sqrt(n))):
-                if n % q == 0:
-                    return False
-            return True
-
-        n_c = c - 1 if is_prime(c) else c
-        s = math.ceil(math.sqrt(n_c))
-        p = s
-        while n_c % p != 0:
-            p += 1
-        return p, n_c // p
-
-    share_ant, share_cons = calc_shares(cores)
-    res = [list(), list()]
-    for s, r in zip([share_ant, share_cons], res):
-        c = math.ceil(num_candidates / s)
-        a = [min(num_candidates, i * c + c) for i in range(s)]
-        for i in range(len(a)):
-            r.append((0, a[i]) if i == 0 else (a[i - 1], a[i]))
-    tasks = list(product(res[0], res[1]))
-    return tasks
-
-
 def main():
     start = datetime.now()
     print("start program:", start)
     args = parse_args()
     min_supp = args["min_supp"]
+    max_supp = args["max_supp"]
     temp_dir = "change_partitions"
-    CHUNK_SIZE = 1000
+    partition_size = args["partition_size"]
     actual_days = sorted({file_name[:10] for file_name in os.listdir(args["change_dir"]) if file_name.startswith("20")})
     min_support_threshold = math.ceil(min_supp * len(actual_days))
-    max_support_threshold = math.floor(args["max_supp"] * len(actual_days))
+    max_support_threshold = math.floor(max_supp * len(actual_days))
 
     # get index change -> dates
     with open(args["change_file"]) as f:
         all_changes = json.load(f)
-
-    # ks = list(all_changes.keys())[:10]
-    # all_changes = {k: v for k, v in all_changes.items() if k in ks}
 
     # build index date -> changes
     # remove change if min support to low
@@ -289,7 +267,10 @@ def main():
         del all_changes[change]
 
     changes = list(all_changes.keys())
-    partition_buckets = [min(CHUNK_SIZE * i, len(changes)) for i in range(math.ceil(len(changes) / CHUNK_SIZE) + 1)]
+    print(f"input: {len(changes)} changes with {min_supp} <= sup(X) <= {max_supp}")
+    partition_buckets = [
+        min(partition_size * i, len(changes)) for i in range(math.ceil(len(changes) / partition_size) + 1)
+    ]
     if not os.path.isdir(temp_dir):
         os.makedirs(temp_dir)
     time_stamp = time()
@@ -300,7 +281,6 @@ def main():
         partition_end = partition_buckets[i]
         partition_keys = set(changes[partition_start:partition_end])
         partition = {k: v for k, v in all_changes.items() if k in partition_keys}
-        # print("ps", partition_start, "pe", partition_end, "el", len(partition_keys), len(partition))
         file_name = os.path.join(temp_dir, f"{time_stamp}_partition_{i}.json")
         partition_files.append(file_name)
         with open(file_name, "w") as f:
@@ -353,7 +333,7 @@ def task_main(my_id, jobs, support_threshold, min_conf, num_bins, result_file, a
         antecedent_file = job.antecedents
         consequent_file = job.consequents
 
-        print(f"[Worker {my_id}: {antecedent_file} - {consequent_file}]")
+        print(f"Worker {my_id}: {antecedent_file} - {consequent_file}")
 
         # get indexes change -> dates
         with open(antecedent_file) as f:
@@ -383,8 +363,14 @@ def task_main(my_id, jobs, support_threshold, min_conf, num_bins, result_file, a
             num_bins,
         )
 
+        del antecedents
+        del consequents
+        del daily_antecedents
+        del daily_consequents
+
         with mutex:
             write_rules(result, result_file)
+        del result
 
 
 def write_rules(rules, result_file):

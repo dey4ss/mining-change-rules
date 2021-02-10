@@ -11,7 +11,7 @@ from util import Entity
 
 
 def parse_args():
-    min_supp_default = 0.1
+    min_supp_default = 0.0
     max_supp_default = 0.5
     thread_default = 10
 
@@ -125,7 +125,7 @@ def main(change_dir, threads, min_supp, max_supp, pretty_print):
     print(f"{len(result)} changes remaining with min supp {min_supp} and max supp {max_supp}")
     indent = 4 if pretty_print else None
 
-    with open("all_changes_aggregated.json", "w") as f:
+    with open("table_changes_aggregated.json", "w") as f:
         json.dump(result, f, indent=indent)
 
 
