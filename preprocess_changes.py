@@ -22,16 +22,28 @@ def parse_args():
     return vars(ap.parse_args())
 
 
+def start_day_representation(num_changes, occurences):
+    if num_changes < 200000:
+        return occurences[0]
+    # if num_changes < 1000000:
+    return f"{occurences[0]}-{occurences[1]}"
+    # return f"{occurences[0]}-{occurences[1]}-{occurences[2]}"
+
+
 def group_simultaneous_changes(all_changes):
     same_changes = dict()
 
     checks = {change: [False, occurences] for change, occurences in all_changes.items()}
     num_groups = 0
 
-    # try grouping only if start date is same
+    # try grouping only if start date(s) is/are same
     start_days = defaultdict(list)
     for change, occurences in all_changes.items():
-        start_days[occurences[0]].append(change)
+        start_days[start_day_representation(len(all_changes), occurences)].append(change)
+
+    start_day_counts = defaultdict(int)
+    for changes in start_days.values():
+        start_day_counts[len(changes)] += 1
 
     for same_start_group in start_days.values():
         for i in range(len(same_start_group)):

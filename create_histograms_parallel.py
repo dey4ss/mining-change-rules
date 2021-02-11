@@ -10,7 +10,6 @@ from collections import defaultdict
 from datetime import datetime
 from itertools import product
 from time import time
-from util import Entity, date_range
 
 
 def parse_args():
@@ -21,9 +20,7 @@ def parse_args():
     bin_default = 11
     partition_default = 1000
 
-    ap = argparse.ArgumentParser(
-        description="Generates a dictionary of changes with their occurences, filtered by support."
-    )
+    ap = argparse.ArgumentParser(description="Generates a list of changes with their occurences, filtered by support.")
     ap.add_argument("change_dir", type=str, help="Directory of the change files")
     ap.add_argument(
         "change_file",
@@ -115,6 +112,10 @@ class Job:
         self.consequents = consequents
 
 
+def log(message):
+    print(f"{datetime.now()} | {message}")
+
+
 def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min_supp_abs, min_conf, days, num_bins):
     hists = defaultdict(lambda: defaultdict(Histogram))
 
@@ -125,8 +126,11 @@ def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min
     # index consequent -> antecedents
     pruned_combinations = defaultdict(set)
 
+    # prohibit self-combinations
+    for consequent in consequents:
+        pruned_combinations[consequent].add(consequent)
+
     for date, day_index in zip(days, range(len(days))):
-        # print(date)
         active_today = dict()
         outdated = set()
         # gather changes of current day, update antecedent counts
@@ -161,9 +165,6 @@ def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min
             )
 
             for antecedent in my_antecedents:
-                if antecedent == consequent:
-                    continue
-
                 hist = hists[antecedent][consequent]
                 occurences_antecedent = antecedents[antecedent]
 
@@ -275,7 +276,6 @@ def main():
         os.makedirs(temp_dir)
     time_stamp = time()
     partition_files = []
-    print(len(changes), "changes")
     for i in range(len(partition_buckets)):
         partition_start = 0 if i == 0 else partition_buckets[i - 1]
         partition_end = partition_buckets[i]
@@ -322,18 +322,18 @@ def main():
 
 
 def task_main(my_id, jobs, support_threshold, min_conf, num_bins, result_file, all_days, mutex):
-    print(f"[Start Worker {my_id}]")
+    log(f"[Start Worker {my_id}]")
     while True:
         try:
             job = jobs.get_nowait()
         except queue.Empty:
-            print(f"[Exit Worker {my_id}]")
+            log(f"[Exit Worker {my_id}]")
             return
 
         antecedent_file = job.antecedents
         consequent_file = job.consequents
 
-        print(f"Worker {my_id}: {antecedent_file} - {consequent_file}")
+        log(f"Worker {my_id}: {antecedent_file} - {consequent_file}")
 
         # get indexes change -> dates
         with open(antecedent_file) as f:
