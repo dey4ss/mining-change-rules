@@ -13,8 +13,8 @@ from time import time
 
 
 def parse_args():
-    min_supp_default = 0.1
-    max_supp_default = 0.5
+    min_sup_default = 0.1
+    max_sup_default = 0.5
     min_conf_default = 0.7
     thread_default = 10
     bin_default = 11
@@ -35,16 +35,16 @@ def parse_args():
         default=thread_default,
     )
     ap.add_argument(
-        "--min_supp",
+        "--min_sup",
         type=float,
-        help=f"Minimal support. Default {min_supp_default}",
-        default=min_supp_default,
+        help=f"Minimal support. Default {min_sup_default}",
+        default=min_sup_default,
     )
     ap.add_argument(
-        "--max_supp",
+        "--max_sup",
         type=float,
-        help=f"Maximal support. Default {max_supp_default}",
-        default=max_supp_default,
+        help=f"Maximal support. Default {max_sup_default}",
+        default=max_sup_default,
     )
     ap.add_argument(
         "--min_conf",
@@ -116,7 +116,9 @@ def log(message):
     print(f"{datetime.now()} | {message}")
 
 
-def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min_supp_abs, min_conf, days, num_bins):
+def get_histograms_of_partitions(
+    antecedents, daily_antecedents, consequents, daily_consequents, min_sup_abs, max_sup_abs, min_conf, days, num_bins
+):
     hists = defaultdict(lambda: defaultdict(Histogram))
 
     # index of changes within num days
@@ -187,15 +189,15 @@ def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min
 
                 # prune if antecedent has appeared too often to reach min confidence
                 # or too few occurrences are left for reaching min support
-                # or max supp is too high
+                # or max sup is too high
                 remaining_antecedent_occurences = len(occurences_antecedent) - hist.antecedent_occurences() + 1
                 remaining_consequent_occurences = len(occurences_consequent) - occurences_consequent.index(date)
                 possible_occurences = min(remaining_consequent_occurences, remaining_antecedent_occurences)
                 can_reach_conf = (hist.abs_support() + possible_occurences) / len(occurences_antecedent) >= min_conf
-                can_reach_sup = hist.abs_support() + possible_occurences >= min_supp_abs
-                # under_max_sup = hist.abs_support() < max_supp_abs
+                can_reach_sup = hist.abs_support() + possible_occurences >= min_sup_abs
+                under_max_sup = hist.abs_support() < max_sup_abs
 
-                if not (can_reach_conf and can_reach_sup):  # and under_max_sup):
+                if not (can_reach_conf and can_reach_sup and under_max_sup):
                     del hists[antecedent][consequent]
                     pruned_combinations[consequent].add(antecedent)
                     continue
@@ -213,7 +215,7 @@ def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min
     for antecedent, consequents in hists.items():
         num_useless_combinations = 0
         for consequent, hist in consequents.items():
-            if hist.abs_support() < min_supp_abs or hist.confidence() < min_conf:
+            if hist.abs_support() < min_sup_abs or hist.confidence() < min_conf:
                 useless_combinations[antecedent].add(consequent)
                 num_useless_combinations += 1
         if len(consequents) == num_useless_combinations:
@@ -238,17 +240,18 @@ def get_hist(antecedents, daily_antecedents, consequents, daily_consequents, min
     return hists
 
 
-def main():
+def create_histograms(args):
     start = datetime.now()
     print("start program:", start)
-    args = parse_args()
-    min_supp = args["min_supp"]
-    max_supp = args["max_supp"]
+    min_sup = args["min_sup"]
+    max_sup = args["max_sup"]
     temp_dir = "change_partitions"
     partition_size = args["partition_size"]
     actual_days = sorted({file_name[:10] for file_name in os.listdir(args["change_dir"]) if file_name.startswith("20")})
-    min_support_threshold = math.ceil(min_supp * len(actual_days))
-    max_support_threshold = math.floor(max_supp * len(actual_days))
+    min_support_threshold = math.ceil(min_sup * len(actual_days))
+    max_support_threshold = math.floor(max_sup * len(actual_days))
+    # changes with num occurences > half of days are too frequent
+    frequency_threshold = math.floor(0.5 * len(actual_days))
 
     # get index change -> dates
     with open(args["change_file"]) as f:
@@ -259,7 +262,7 @@ def main():
     daily_changes = defaultdict(set)
     too_infrequent_changes = set()
     for change, occurences in all_changes.items():
-        if len(occurences) < min_support_threshold or len(occurences) > max_support_threshold:
+        if len(occurences) < min_support_threshold or len(occurences) > frequency_threshold:
             too_infrequent_changes.add(change)
             continue
         for date in occurences:
@@ -268,7 +271,7 @@ def main():
         del all_changes[change]
 
     changes = list(all_changes.keys())
-    print(f"input: {len(changes)} changes with {min_supp} <= sup(X) <= {max_supp}")
+    print(f"input: {len(changes)} changes with {min_sup} <= sup(X) <= {max_sup}")
     partition_buckets = [
         min(partition_size * i, len(changes)) for i in range(math.ceil(len(changes) / partition_size) + 1)
     ]
@@ -296,6 +299,7 @@ def main():
                     f"{n}".rjust(2),
                     job_queue,
                     min_support_threshold,
+                    max_support_threshold,
                     args["min_conf"],
                     args["num_bins"],
                     args["output"],
@@ -321,7 +325,9 @@ def main():
     print("duration:", end - start)
 
 
-def task_main(my_id, jobs, support_threshold, min_conf, num_bins, result_file, all_days, mutex):
+def task_main(
+    my_id, jobs, min_support_threshold, max_support_threshold, min_conf, num_bins, result_file, all_days, mutex
+):
     log(f"[Start Worker {my_id}]")
     while True:
         try:
@@ -352,12 +358,13 @@ def task_main(my_id, jobs, support_threshold, min_conf, num_bins, result_file, a
             for date in occurences:
                 daily_consequents[date].add(change)
 
-        result = get_hist(
+        result = get_histograms_of_partitions(
             antecedents,
             daily_antecedents,
             consequents,
             daily_consequents,
-            support_threshold,
+            min_support_threshold,
+            max_support_threshold,
             min_conf,
             all_days,
             num_bins,
@@ -384,4 +391,4 @@ def write_rules(rules, result_file):
 
 
 if __name__ == "__main__":
-    main()
+    create_histograms(parse_args())
