@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 
 import argparse
 import json
@@ -21,11 +21,15 @@ def parse_args():
     partition_default = 1000
 
     ap = argparse.ArgumentParser(description="Generates a list of changes with their occurences, filtered by support.")
-    ap.add_argument("change_dir", type=str, help="Directory of the change files")
     ap.add_argument(
         "change_file",
         type=str,
-        help="File with occurences per change (expect Python dict as .json)",
+        help="File with occurences per change (expect Python dict as JSON)",
+    )
+    ap.add_argument(
+        "timepoint_file",
+        type=str,
+        help="File with list of dates (JSON file)",
     )
     ap.add_argument("output", type=str, help=f"Output file path")
     ap.add_argument(
@@ -212,13 +216,13 @@ def get_histograms_of_partitions(
     # combinations with low min support / confidence may not have been removed previously
     useless_antecedents = set()
     useless_combinations = defaultdict(set)
-    for antecedent, consequents in hists.items():
+    for antecedent, my_consequents in hists.items():
         num_useless_combinations = 0
-        for consequent, hist in consequents.items():
+        for consequent, hist in my_consequents.items():
             if hist.abs_support() < min_sup_abs or hist.confidence() < min_conf:
                 useless_combinations[antecedent].add(consequent)
                 num_useless_combinations += 1
-        if len(consequents) == num_useless_combinations:
+        if len(my_consequents) == num_useless_combinations:
             useless_antecedents.add(antecedent)
 
     for antecedent in useless_antecedents:
@@ -228,14 +232,18 @@ def get_histograms_of_partitions(
         except KeyError:
             pass
 
-    for antecedent, consequents in useless_combinations.items():
-        for consequent in consequents:
+    for antecedent, my_consequents in useless_combinations.items():
+        for consequent in my_consequents:
             del hists[antecedent][consequent]
 
-    for antecedent, consequents in hists.items():
-        ant_support = len(antecedents[antecedent]) / len(days)
-        for consequent, hist in consequents.items():
-            hist.lift = hist.confidence() / ant_support
+    for antecedent, my_consequents in hists.items():
+        # ant_support = len(antecedents[antecedent]) / len(days)
+        ant_support = len(antecedents[antecedent])
+        for consequent, hist in my_consequents.items():
+            # print(consequent)
+            # print(len(consequents[consequent]))
+            cons_support = len(consequents[consequent])
+            hist.lift = hist.abs_support() / (ant_support * cons_support)
 
     return hists
 
@@ -247,9 +255,13 @@ def create_histograms(args):
     max_sup = args["max_sup"]
     temp_dir = "change_partitions"
     partition_size = args["partition_size"]
-    actual_days = sorted({file_name[:10] for file_name in os.listdir(args["change_dir"]) if file_name.startswith("20")})
+
+    # get time points of changes for support
+    with open(args["timepoint_file"]) as f:
+        actual_days = json.load(f)
     min_support_threshold = math.ceil(min_sup * len(actual_days))
     max_support_threshold = math.floor(max_sup * len(actual_days))
+
     # changes with num occurences > half of days are too frequent
     frequency_threshold = math.floor(0.5 * len(actual_days))
 
@@ -262,7 +274,7 @@ def create_histograms(args):
     daily_changes = defaultdict(set)
     too_infrequent_changes = set()
     for change, occurences in all_changes.items():
-        if len(occurences) < min_support_threshold or len(occurences) > frequency_threshold:
+        if len(occurences) < min_support_threshold or len(occurences) > max_support_threshold:
             too_infrequent_changes.add(change)
             continue
         for date in occurences:

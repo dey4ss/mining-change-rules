@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import argparse
 import json
 import math
@@ -149,17 +150,17 @@ def main():
             del all_changes[item]
 
     # filter periodic_changes
-    periodic_changes = find_periodic_changes(all_changes, args["periodic_threshold"])
-    for change in periodic_changes:
-        del all_changes[change]
+    # periodic_changes = find_periodic_changes(all_changes, args["periodic_threshold"])
+    # for change in periodic_changes:
+    #    del all_changes[change]
 
     print(f"{len(all_changes)} changes remaining")
 
     prefix = ".".join(args["change_file"].split(".")[:-1])
-    with open(f"{prefix}_change_groups.json", "w") as f:
+    with open(f"{prefix}_change_groups_regular.json", "w") as f:
         json.dump(simultaneous_changes, f)
 
-    with open(f"{prefix}_grouped.json", "w") as f:
+    with open(f"{prefix}_grouped_regular.json", "w") as f:
         json.dump(all_changes, f)
 
     end = datetime.now()
