@@ -23,7 +23,10 @@ def read_rule(line):
     hist_str = parts[5][2:-2]
     hist_parts = hist_str.split(",")
     hist = [int(x) for x in hist_parts]
-    return antecedent, consequent, [support, confidence, lift, hist]
+    result = [support, confidence, lift, hist]
+    if len(parts) > 6:
+        result += parts[6:]
+    return antecedent, consequent, result
 
 
 def read_rules(file_name):
