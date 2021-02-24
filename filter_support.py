@@ -11,7 +11,7 @@ from util import Entity
 
 
 def parse_args():
-    min_sup_default = 0.0
+    min_sup_default = 0.05
     max_sup_default = 0.5
     thread_default = 10
 

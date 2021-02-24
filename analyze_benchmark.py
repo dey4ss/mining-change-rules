@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+
+import argparse
 import json
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -10,13 +12,23 @@ import pandas as pd
 from collections import defaultdict
 
 
+def parse_args():
+    ap = argparse.ArgumentParser(description="Creates plots from a benchmark output file")
+    ap.add_argument("benchmark_file", type=str, help="Path to an output file of benchmark_historgam_creation.py ")
+    ap.add_argument("output_path", type=str, help="Path to output directory")
+    ap.add_argument(
+        "--format", "-f", type=str, help="Plot file format", choices=["eps", "pdf", "png", "svg"], default="png"
+    )
+    return vars(ap.parse_args())
+
+
 def input_size_from_filename(file_path):
     file_name = file_path.split(os.sep)[-1]
     regex = r"\d+(?=_changes.json)"
     return int(re.search(regex, file_name).group())
 
 
-def main():
+def main(input_file, output_path, file_extension):
     parameter_print_names = {
         "change_file": "Input size",
         "min_conf": "Min confidence",
@@ -27,7 +39,7 @@ def main():
         "partition_size": "Partition size",
     }
 
-    with open("/home/daniel.lindner/benchmark_results/benchmark_02-17.json") as f:
+    with open(input_file) as f:
         benchmark_results = json.load(f)
 
     runsum = 0
@@ -70,19 +82,16 @@ def main():
 
         ax1.set_xlabel(param_readable)
         ax1.set_ylabel("Run-time [s]")
-        ax1 = sns.scatterplot(x=parameter, y="runtime", data=data)  # , label="Run-time")
+        ax1 = sns.scatterplot(x=parameter, y="runtime", data=data)
         max_value = max(runtimes_avg)
         ax1.set_ylim(0, max_value * 1.05)
 
         ax2 = ax1.twinx()
         ax2.set_ylabel("Number of rules")
-        ax2 = sns.scatterplot(x=parameter, y="rules", data=data, color="black", marker="x")  # , label="No. rules")
-        ax2.set_title(f"Run-time w.r.t. {param_readable}\n{fixed_value_str}")
+        ax2 = sns.scatterplot(x=parameter, y="rules", data=data, color="black", marker="x")
+        plt.title(f"Run-time w.r.t. {param_readable}\n{fixed_value_str}")
         max_rules = max(num_rules)
         ax2.set_ylim(0, max_rules * 1.05)
-
-        # runtime_patch = mpatches.Patch(color="blue", marker="o", label="Run-time")
-        # rules_patch = mpatches.Patch(color="black", marker="x", label="No. rules")
 
         r_t = mlines.Line2D([], [], color="blue", marker="o", label="Run-time", lw=0)
         n_r = mlines.Line2D([], [], color="black", marker="x", label="# rules", lw=0)
@@ -90,12 +99,11 @@ def main():
         plt.tight_layout()
         suffix = "" if seen_parameters[parameter] == 0 else f"_{seen_parameters[parameter]}"
         plt.legend(handles=[r_t, n_r])
-        plt.savefig(os.path.join("benchmark_plots", f"{parameter}{suffix}"))
-        # plt.legend(loc="upper left")
-        # plt.legend([ax1, (ax1, ax2)], ["Run-time", "No. rules"])
+        plt.savefig(os.path.join(output_path, f"{parameter}{suffix}.{file_extension}"), dpi=300)
         plt.close()
         seen_parameters[parameter] += 1
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args["benchmark_file"], args["output_path"], args["format"])

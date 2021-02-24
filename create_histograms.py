@@ -20,11 +20,11 @@ def parse_args():
     bin_default = 11
     partition_default = 1000
 
-    ap = argparse.ArgumentParser(description="Generates a list of changes with their occurences, filtered by support.")
+    ap = argparse.ArgumentParser(description="Generates a list of changes with their occurrences, filtered by support.")
     ap.add_argument(
         "change_file",
         type=str,
-        help="File with occurences per change (expect Python dict as JSON)",
+        help="File with occurrences per change (expect Python dict as JSON)",
     )
     ap.add_argument(
         "timepoint_file",
@@ -80,39 +80,39 @@ class Histogram:
     def __init__(self):
         self._is_setup = False
         self._actual_antecedent = 0
-        self._occurence_count = 0
+        self._occurrence_count = 0
         self.lift = 0
 
     def is_setup(self):
         return self._is_setup
 
-    def setup(self, bin_count, occurences_right):
+    def setup(self, bin_count, occurrences_right):
         if self._is_setup:
             raise RuntimeError(f"{self.__class__.__name__} has already been set up.")
         self._bins = [0 for _ in range(bin_count)]
-        self._count_antecedent = occurences_right
+        self._count_antecedent = occurrences_right
         self._is_setup = True
 
-    def add_occurence(self, bin):
+    def add_occurrence(self, bin):
         if not self._is_setup:
             raise RuntimeError(f"{self.__class__.__name__} needs to be set up first.")
         self._bins[bin] += 1
-        self._occurence_count += 1
+        self._occurrence_count += 1
 
-    def add_antecedent_occurence(self):
+    def add_antecedent_occurrence(self):
         self._actual_antecedent += 1
 
-    def antecedent_occurences(self):
+    def antecedent_occurrences(self):
         return self._actual_antecedent
 
     def bins(self):
         return self._bins
 
     def confidence(self):
-        return self._occurence_count / self._count_antecedent
+        return self._occurrence_count / self._count_antecedent
 
     def abs_support(self):
-        return self._occurence_count
+        return self._occurrence_count
 
 
 class Job:
@@ -132,7 +132,7 @@ def get_histograms_of_partitions(
     hists = defaultdict(lambda: defaultdict(Histogram))
 
     # index of changes within num days
-    # change -> days since last occurence
+    # change -> days since last occurrence
     active_changes = dict()
 
     # index consequent -> antecedents
@@ -149,9 +149,9 @@ def get_histograms_of_partitions(
         for change in daily_antecedents[date]:
             active_today[change] = 0
             for hist in hists[change].values():
-                hist.add_antecedent_occurence()
+                hist.add_antecedent_occurrence()
 
-        # update time since occurence for older antecedents
+        # update time since occurrence for older antecedents
         for change in active_changes:
             active_changes[change] += 1
             if active_changes[change] >= num_bins:
@@ -170,41 +170,41 @@ def get_histograms_of_partitions(
         # begin with real work:
         for consequent in daily_consequents[date]:
             my_antecedents = antecedent_candidates - pruned_combinations[consequent]
-            occurences_consequent = consequents[consequent]
-            ind_today = occurences_consequent.index(date)
-            days_since_last_consequent_occurence = (
-                num_bins if ind_today == 0 else days.index(date) - days.index(occurences_consequent[ind_today - 1])
+            occurrences_consequent = consequents[consequent]
+            ind_today = occurrences_consequent.index(date)
+            days_since_last_consequent_occurrence = (
+                num_bins if ind_today == 0 else days.index(date) - days.index(occurrences_consequent[ind_today - 1])
             )
 
             for antecedent in my_antecedents:
                 hist = hists[antecedent][consequent]
-                occurences_antecedent = antecedents[antecedent]
+                occurrences_antecedent = antecedents[antecedent]
 
-                # make sure that consequent has not occured in between
-                days_since_antecedent_occurence = active_changes[antecedent]
-                difference = days_since_antecedent_occurence - days_since_last_consequent_occurence
+                # make sure that consequent has not occurred in between
+                days_since_antecedent_occurrence = active_changes[antecedent]
+                difference = days_since_antecedent_occurrence - days_since_last_consequent_occurrence
                 if difference >= 0:
                     continue
 
                 # check if histogram is already created
                 # prune if min confidence or min support cannot be reached
                 if not hist.is_setup():
-                    maximal_confidence = len(occurences_consequent) / len(occurences_antecedent)
+                    maximal_confidence = len(occurrences_consequent) / len(occurrences_antecedent)
                     if can_shortcut_support or maximal_confidence < min_conf:
                         del hists[antecedent][consequent]
                         pruned_combinations[consequent].add(antecedent)
                         continue
                     else:
-                        hist.setup(num_bins, len(occurences_antecedent))
+                        hist.setup(num_bins, len(occurrences_antecedent))
 
                 # prune if antecedent has appeared too often to reach min confidence
                 # or too few occurrences are left for reaching min support
                 # or max sup is too high
-                remaining_antecedent_occurences = len(occurences_antecedent) - hist.antecedent_occurences() + 1
-                remaining_consequent_occurences = len(occurences_consequent) - occurences_consequent.index(date)
-                possible_occurences = min(remaining_consequent_occurences, remaining_antecedent_occurences)
-                can_reach_conf = (hist.abs_support() + possible_occurences) / len(occurences_antecedent) >= min_conf
-                can_reach_sup = hist.abs_support() + possible_occurences >= min_sup_abs
+                remaining_antecedent_occurrences = len(occurrences_antecedent) - hist.antecedent_occurrences() + 1
+                remaining_consequent_occurrences = len(occurrences_consequent) - occurrences_consequent.index(date)
+                possible_occurrences = min(remaining_consequent_occurrences, remaining_antecedent_occurrences)
+                can_reach_conf = (hist.abs_support() + possible_occurrences) / len(occurrences_antecedent) >= min_conf
+                can_reach_sup = hist.abs_support() + possible_occurrences >= min_sup_abs
 
                 if not (can_reach_conf and can_reach_sup):
                     del hists[antecedent][consequent]
@@ -212,7 +212,7 @@ def get_histograms_of_partitions(
                     continue
 
                 # actually add value to histogram
-                hist.add_occurence(days_since_antecedent_occurence)
+                hist.add_occurrence(days_since_antecedent_occurrence)
 
     del active_changes
     del pruned_combinations
@@ -275,17 +275,19 @@ def create_histograms(args):
     # remove change if min support to low
     daily_changes = defaultdict(set)
     too_infrequent_changes = set()
-    for change, occurences in all_changes.items():
-        if len(occurences) < min_support_threshold or len(occurences) > max_support_threshold:
+    for change, occurrences in all_changes.items():
+        if len(occurrences) < min_support_threshold or len(occurrences) > max_support_threshold:
             too_infrequent_changes.add(change)
             continue
-        for date in occurences:
+        for date in occurrences:
             daily_changes[date].add(change)
     for change in too_infrequent_changes:
         del all_changes[change]
 
     changes = list(all_changes.keys())
     print(f"input: {len(changes)} changes with {min_sup} <= sup(X) <= {max_sup}")
+
+    # partition change index
     partition_buckets = [
         min(partition_size * i, len(changes)) for i in range(math.ceil(len(changes) / partition_size) + 1)
     ]
@@ -303,6 +305,7 @@ def create_histograms(args):
         with open(file_name, "w") as f:
             json.dump(partition, f)
 
+    # initialize parallel setup
     with mp.Manager() as manager:
         job_queue = manager.Queue()
         mutex = mp.Lock()
@@ -327,11 +330,13 @@ def create_histograms(args):
         for a, d in product(partition_files, repeat=2):
             job_queue.put(Job(a, d))
 
+        # start histogram creation
         for worker in workers:
             worker.start()
         for worker in workers:
             worker.join()
 
+    # cleanup
     for file_name in partition_files:
         os.remove(file_name)
     end = datetime.now()
@@ -361,13 +366,13 @@ def task_main(my_id, jobs, min_support_threshold, min_conf, num_bins, result_fil
 
         # build indexes date -> changes
         daily_antecedents = defaultdict(set)
-        for change, occurences in antecedents.items():
-            for date in occurences:
+        for change, occurrences in antecedents.items():
+            for date in occurrences:
                 daily_antecedents[date].add(change)
 
         daily_consequents = defaultdict(set)
-        for change, occurences in consequents.items():
-            for date in occurences:
+        for change, occurrences in consequents.items():
+            for date in occurrences:
                 daily_consequents[date].add(change)
 
         result = get_histograms_of_partitions(

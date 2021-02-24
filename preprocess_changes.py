@@ -159,10 +159,10 @@ def main(args):
     print(f"{len(all_changes)} changes remaining")
 
     prefix = ".".join(args["change_file"].split(".")[:-1])
-    with open(f"{prefix}_change_groups_regular.json", "w") as f:
+    with open(f"{prefix}_change_groupsd.json", "w") as f:
         json.dump(simultaneous_changes, f)
 
-    with open(f"{prefix}_grouped_regular.json", "w") as f:
+    with open(f"{prefix}_grouped.json", "w") as f:
         json.dump(all_changes, f)
 
     end = datetime.now()
