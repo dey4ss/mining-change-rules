@@ -23,7 +23,7 @@ def main():
         "min_sup": "Min support",
         "max_sup": "Max support",
         "threads": "Number of threads",
-        "num_bins": "Number of bins",
+        "num_bins": "Window size",
         "partition_size": "Partition size",
     }
 
@@ -85,7 +85,7 @@ def main():
         # rules_patch = mpatches.Patch(color="black", marker="x", label="No. rules")
 
         r_t = mlines.Line2D([], [], color="blue", marker="o", label="Run-time", lw=0)
-        n_r = mlines.Line2D([], [], color="black", marker="x", label="No. rules", lw=0)
+        n_r = mlines.Line2D([], [], color="black", marker="x", label="# rules", lw=0)
 
         plt.tight_layout()
         suffix = "" if seen_parameters[parameter] == 0 else f"_{seen_parameters[parameter]}"

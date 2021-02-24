@@ -12,7 +12,7 @@ def parse_args():
     ap = argparse.ArgumentParser(description="Counts entity changes")
     ap.add_argument("change_dir", type=str, help="Directory of the change files.")
     ap.add_argument(
-        "entity", type=str, help="Entity to aggregate.", choices=[e.to_str() for e in Entity if not e == Entity.Field]
+        "entity", type=str, help="Entity to aggregate.", choices=[e.to_str() for e in Entity if e != Entity.Field]
     )
     ap.add_argument("--start", type=str, help="Start date. Default 2019-11-02", default="2020-03-01")
     ap.add_argument("--end", type=str, help="End date. Default 2020-11-01", default="2020-11-01")

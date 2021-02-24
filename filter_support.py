@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 
 import argparse
 import json
@@ -11,8 +11,8 @@ from util import Entity
 
 
 def parse_args():
-    min_supp_default = 0.0
-    max_supp_default = 0.5
+    min_sup_default = 0.0
+    max_sup_default = 0.5
     thread_default = 10
 
     ap = argparse.ArgumentParser(
@@ -26,16 +26,25 @@ def parse_args():
         default=thread_default,
     )
     ap.add_argument(
-        "--min_supp",
+        "--min_sup",
         type=float,
-        help=f"Minimal support. Default {min_supp_default}",
-        default=min_supp_default,
+        help=f"Minimal support. Default {min_sup_default}",
+        default=min_sup_default,
     )
     ap.add_argument(
-        "--max_supp",
+        "--max_sup",
         type=float,
-        help=f"Maximal support. Default {max_supp_default}",
-        default=max_supp_default,
+        help=f"Maximal support. Default {max_sup_default}",
+        default=max_sup_default,
+    )
+    ap.add_argument(
+        "--entity",
+        "-e",
+        type=str,
+        nargs="*",
+        choices=[e.to_str() for e in Entity if e != Entity.Field],
+        help="Entities. Default table",
+        default=["table"],
     )
     ap.add_argument("--pp", action="store_true", help=f"Pretty print output JSON. Default false")
 
@@ -50,13 +59,11 @@ def distribute_days(overall_num_days, num_threads):
 
 
 # aggregate changes with their occurences
-def aggregate_occurences(change_dir, days, my_id):
+def aggregate_occurences(change_dir, days, my_id, entities):
     my_dict = defaultdict(list)
     my_num_days = len(days)
     print(f"[Start Worker {my_id}]")
 
-    entities = [e for e in Entity.string_representations() if e != Entity.Field.to_str()]
-    entities = ["table"]
     change_files = [f"_{entity}_changes_aggregated.csv" for entity in entities]
 
     # for all changes of given dates:
@@ -82,7 +89,7 @@ def aggregate_occurences(change_dir, days, my_id):
     return my_dict
 
 
-def main(change_dir, threads, min_supp, max_supp, pretty_print):
+def main(change_dir, threads, min_sup, max_sup, pretty_print, entities):
     actual_days = {file_name[:10] for file_name in os.listdir(change_dir) if file_name.startswith("20")}
     num_days = len(actual_days)
     days_list = list(actual_days)
@@ -95,14 +102,14 @@ def main(change_dir, threads, min_supp, max_supp, pretty_print):
         thread_days = days_list[:thread_num_days]
         days_list = days_list[thread_num_days:]
         thread_id = str(thread + 1).rjust(2)
-        tasks.append((change_dir, thread_days, thread_id))
+        tasks.append((change_dir, thread_days, thread_id, entities))
 
     results = None
     with mp.Pool(processes=threads) as pool:
         results = pool.starmap(aggregate_occurences, tasks)
 
-    min_days = math.ceil(min_supp * num_days)
-    max_days = math.floor(max_supp * num_days)
+    min_days = math.ceil(min_sup * num_days)
+    max_days = math.floor(max_sup * num_days)
 
     result = defaultdict(list)
     for partial_result, t_id in zip(results, range(1, len(results) + 1)):
@@ -122,19 +129,13 @@ def main(change_dir, threads, min_supp, max_supp, pretty_print):
     for change in skipped_changes:
         del result[change]
 
-    print(f"{len(result)} changes remaining with min supp {min_supp} and max supp {max_supp}")
+    print(f"{len(result)} changes remaining with min sup {min_sup} and max sup {max_sup}")
     indent = 4 if pretty_print else None
 
-    with open("table_changes_aggregated.json", "w") as f:
+    with open("_".join(entities) + "_changes_aggregated.json", "w") as f:
         json.dump(result, f, indent=indent)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    main(
-        args["change_dir"],
-        args["threads"],
-        args["min_supp"],
-        args["max_supp"],
-        args["pp"],
-    )
+    main(args["change_dir"], args["threads"], args["min_sup"], args["max_sup"], args["pp"], args["entity"])

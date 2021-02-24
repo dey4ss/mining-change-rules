@@ -1,32 +1,37 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 
 import argparse
 import json
 import math
 import multiprocessing as mp
 import os
+import queue
 from collections import defaultdict
 from datetime import datetime
-
-from util import Entity, date_range
+from itertools import product
+from time import time
 
 
 def parse_args():
-    min_supp_default = 0.1
-    max_supp_default = 0.5
+    min_sup_default = 0.1
+    max_sup_default = 0.5
     min_conf_default = 0.7
-    thread_default = 10  # unused for now, but there might be a case, e.g. chunks of all changes?
+    thread_default = 10
     bin_default = 11
+    partition_default = 1000
 
-    ap = argparse.ArgumentParser(
-        description="Generates a dictionary of changes with their occurences, filtered by support."
-    )
-    ap.add_argument("change_dir", type=str, help="Directory of the change files.")
+    ap = argparse.ArgumentParser(description="Generates a list of changes with their occurences, filtered by support.")
     ap.add_argument(
         "change_file",
         type=str,
-        help="File with occurences per change (expect Python dict as .json)",
+        help="File with occurences per change (expect Python dict as JSON)",
     )
+    ap.add_argument(
+        "timepoint_file",
+        type=str,
+        help="File with list of dates (JSON file)",
+    )
+    ap.add_argument("output", type=str, help=f"Output file path")
     ap.add_argument(
         "--threads",
         type=int,
@@ -34,16 +39,16 @@ def parse_args():
         default=thread_default,
     )
     ap.add_argument(
-        "--min_supp",
+        "--min_sup",
         type=float,
-        help=f"Minimal support. Default {min_supp_default}",
-        default=min_supp_default,
+        help=f"Minimal support. Default {min_sup_default}",
+        default=min_sup_default,
     )
     ap.add_argument(
-        "--max_supp",
+        "--max_sup",
         type=float,
-        help=f"Maximal support. Default {max_supp_default}",
-        default=max_supp_default,
+        help=f"Maximal support. Default {max_sup_default}",
+        default=max_sup_default,
     )
     ap.add_argument(
         "--min_conf",
@@ -53,9 +58,20 @@ def parse_args():
     )
     ap.add_argument(
         "--num_bins",
-        type=float,
+        type=int,
         help=f"Bin count. Default {bin_default}",
         default=bin_default,
+    )
+    ap.add_argument(
+        "--partition_size",
+        type=int,
+        help=f"Partition Size. Default {partition_default}",
+        default=partition_default,
+    )
+    ap.add_argument(
+        "--extensive_log",
+        action="store_true",
+        help=f"Detailed log messages",
     )
     return vars(ap.parse_args())
 
@@ -65,6 +81,7 @@ class Histogram:
         self._is_setup = False
         self._actual_antecedent = 0
         self._occurence_count = 0
+        self.lift = 0
 
     def is_setup(self):
         return self._is_setup
@@ -98,11 +115,21 @@ class Histogram:
         return self._occurence_count
 
 
-def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, days, num_days, candidates):
+class Job:
+    def __init__(self, antecedents, consequents):
+        self.antecedents = antecedents
+        self.consequents = consequents
+
+
+def log(message, is_debug):
+    if is_debug:
+        print(f"{datetime.now()} | {message}")
+
+
+def get_histograms_of_partitions(
+    antecedents, daily_antecedents, consequents, daily_consequents, min_sup_abs, min_conf, days, num_bins, do_log
+):
     hists = defaultdict(lambda: defaultdict(Histogram))
-    start = datetime.now()
-    print(f"start : {start}")
-    sum_days = len(days)
 
     # index of changes within num days
     # change -> days since last occurence
@@ -111,12 +138,15 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
     # index consequent -> antecedents
     pruned_combinations = defaultdict(set)
 
-    for date, day_index in zip(days, range(sum_days)):
-        print(date)
+    # prohibit self-combinations
+    for consequent in consequents:
+        pruned_combinations[consequent].add(consequent)
+
+    for date, day_index in zip(days, range(len(days))):
         active_today = dict()
         outdated = set()
         # gather changes of current day, update antecedent counts
-        for change in daily_changes[date]:
+        for change in daily_antecedents[date]:
             active_today[change] = 0
             for hist in hists[change].values():
                 hist.add_antecedent_occurence()
@@ -124,7 +154,7 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
         # update time since occurence for older antecedents
         for change in active_changes:
             active_changes[change] += 1
-            if active_changes[change] >= num_days:
+            if active_changes[change] >= num_bins:
                 outdated.add(change)
 
         # merge, remove too old antecedents
@@ -133,27 +163,22 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
             del active_changes[change]
 
         # skip if min support cannot be reached
-        can_shortcut_support = sum_days - day_index < num_days
+        can_shortcut_support = len(days) - day_index < num_bins
 
         antecedent_candidates = set(active_changes.keys())
-        consequents = candidates & daily_changes[date]
 
         # begin with real work:
-        for consequent in consequents:
-            antecedents = antecedent_candidates - pruned_combinations[consequent]
-            occurences_consequent = all_changes[consequent]
+        for consequent in daily_consequents[date]:
+            my_antecedents = antecedent_candidates - pruned_combinations[consequent]
+            occurences_consequent = consequents[consequent]
             ind_today = occurences_consequent.index(date)
             days_since_last_consequent_occurence = (
-                num_days if ind_today == 0 else days.index(date) - days.index(occurences_consequent[ind_today - 1])
+                num_bins if ind_today == 0 else days.index(date) - days.index(occurences_consequent[ind_today - 1])
             )
 
-            for antecedent in antecedents:
-                if antecedent == consequent:
-                    continue
-
+            for antecedent in my_antecedents:
                 hist = hists[antecedent][consequent]
-                occurences_antecedent = all_changes[antecedent]
-                occurences_consequent = all_changes[consequent]
+                occurences_antecedent = antecedents[antecedent]
 
                 # make sure that consequent has not occured in between
                 days_since_antecedent_occurence = active_changes[antecedent]
@@ -170,19 +195,18 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
                         pruned_combinations[consequent].add(antecedent)
                         continue
                     else:
-                        hist.setup(num_days, len(occurences_antecedent))
+                        hist.setup(num_bins, len(occurences_antecedent))
 
                 # prune if antecedent has appeared too often to reach min confidence
                 # or too few occurrences are left for reaching min support
-                # or max supp is too high
+                # or max sup is too high
                 remaining_antecedent_occurences = len(occurences_antecedent) - hist.antecedent_occurences() + 1
                 remaining_consequent_occurences = len(occurences_consequent) - occurences_consequent.index(date)
                 possible_occurences = min(remaining_consequent_occurences, remaining_antecedent_occurences)
                 can_reach_conf = (hist.abs_support() + possible_occurences) / len(occurences_antecedent) >= min_conf
-                can_reach_sup = hist.abs_support() + possible_occurences >= min_supp_abs
-                under_max_sup = hist.abs_support() < max_supp_abs
+                can_reach_sup = hist.abs_support() + possible_occurences >= min_sup_abs
 
-                if not (can_reach_conf and can_reach_sup and under_max_sup):
+                if not (can_reach_conf and can_reach_sup):
                     del hists[antecedent][consequent]
                     pruned_combinations[consequent].add(antecedent)
                     continue
@@ -190,25 +214,20 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
                 # actually add value to histogram
                 hist.add_occurence(days_since_antecedent_occurence)
 
-    end = datetime.now()
-    print(f"saving: {end}")
-    print("duration", end - start)
     del active_changes
-    # del all_changes
-    del daily_changes
     del pruned_combinations
 
     # remove antecedents without consequents
     # combinations with low min support / confidence may not have been removed previously
     useless_antecedents = set()
     useless_combinations = defaultdict(set)
-    for antecedent, consequents in hists.items():
+    for antecedent, my_consequents in hists.items():
         num_useless_combinations = 0
-        for consequent, hist in consequents.items():
-            if hist.abs_support() < min_supp_abs or hist.confidence() < min_conf:
+        for consequent, hist in my_consequents.items():
+            if hist.abs_support() < min_sup_abs or hist.confidence() < min_conf:
                 useless_combinations[antecedent].add(consequent)
                 num_useless_combinations += 1
-        if len(consequents) == num_useless_combinations:
+        if len(my_consequents) == num_useless_combinations:
             useless_antecedents.add(antecedent)
 
     for antecedent in useless_antecedents:
@@ -218,41 +237,35 @@ def get_hist(all_changes, daily_changes, min_supp_abs, max_supp_abs, min_conf, d
         except KeyError:
             pass
 
-    for antecedent, consequents in useless_combinations.items():
-        for consequent in consequents:
+    for antecedent, my_consequents in useless_combinations.items():
+        for consequent in my_consequents:
             del hists[antecedent][consequent]
 
-    lift = lambda ant, con, sup: sup / (len(all_changes[ant]) * len(all_changes[con]))
-    result_entry = lambda ant, con, histo: [
-        histo.abs_support(),
-        histo.confidence(),
-        lift(ant, con, histo.abs_support()),
-        histo.bins(),
-    ]
+    for antecedent, my_consequents in hists.items():
+        # ant_support = len(antecedents[antecedent]) / len(days)
+        ant_support = len(antecedents[antecedent])
+        for consequent, hist in my_consequents.items():
+            # print(consequent)
+            # print(len(consequents[consequent]))
+            cons_support = len(consequents[consequent])
+            hist.lift = hist.abs_support() / (ant_support * cons_support)
 
-    result = {
-        antecedent: {consequent: result_entry(antecedent, consequent, hist) for consequent, hist in consequents.items()}
-        for antecedent, consequents in hists.items()
-    }
-
-    num_rules = sum([len(consequents) for antecedent, consequents in hists.items()])
-    print(num_rules, "rules generated")
-
-    with open("histograms_columns.json", "w") as f:
-        json.dump(result, f)
-
-    print(f"end: {datetime.now()}")
+    return hists
 
 
-def main():
+def create_histograms(args):
     start = datetime.now()
     print("start program:", start)
-    args = parse_args()
-    min_supp = args["min_supp"]
-    actual_days = list(
-        sorted({file_name[:10] for file_name in os.listdir(args["change_dir"]) if file_name.startswith("20")})
-    )
-    support_threshold = math.ceil(min_supp * len(actual_days))
+    min_sup = args["min_sup"]
+    max_sup = args["max_sup"]
+    temp_dir = "change_partitions"
+    partition_size = args["partition_size"]
+
+    # get time points of changes for support
+    with open(args["timepoint_file"]) as f:
+        actual_days = json.load(f)
+    min_support_threshold = math.ceil(min_sup * len(actual_days))
+    max_support_threshold = math.floor(max_sup * len(actual_days))
 
     # get index change -> dates
     with open(args["change_file"]) as f:
@@ -263,7 +276,7 @@ def main():
     daily_changes = defaultdict(set)
     too_infrequent_changes = set()
     for change, occurences in all_changes.items():
-        if len(occurences) < support_threshold:
+        if len(occurences) < min_support_threshold or len(occurences) > max_support_threshold:
             too_infrequent_changes.add(change)
             continue
         for date in occurences:
@@ -271,20 +284,123 @@ def main():
     for change in too_infrequent_changes:
         del all_changes[change]
 
-    candidates = set(all_changes.keys())
-    # candidates = set(list(all_changes.keys())[:10])
+    changes = list(all_changes.keys())
+    print(f"input: {len(changes)} changes with {min_sup} <= sup(X) <= {max_sup}")
+    partition_buckets = [
+        min(partition_size * i, len(changes)) for i in range(math.ceil(len(changes) / partition_size) + 1)
+    ]
+    if not os.path.isdir(temp_dir):
+        os.makedirs(temp_dir)
+    time_stamp = time()
+    partition_files = []
+    for i in range(len(partition_buckets)):
+        partition_start = 0 if i == 0 else partition_buckets[i - 1]
+        partition_end = partition_buckets[i]
+        partition_keys = set(changes[partition_start:partition_end])
+        partition = {k: v for k, v in all_changes.items() if k in partition_keys}
+        file_name = os.path.join(temp_dir, f"{time_stamp}_partition_{i}.json")
+        partition_files.append(file_name)
+        with open(file_name, "w") as f:
+            json.dump(partition, f)
 
-    get_hist(
-        all_changes,
-        daily_changes,
-        support_threshold,
-        math.floor(args["max_supp"] * len(actual_days)),
-        args["min_conf"],
-        actual_days,
-        args["num_bins"],
-        candidates,
-    )
+    with mp.Manager() as manager:
+        job_queue = manager.Queue()
+        mutex = mp.Lock()
+        workers = [
+            mp.Process(
+                target=task_main,
+                args=(
+                    f"{n}".rjust(2),
+                    job_queue,
+                    min_support_threshold,
+                    args["min_conf"],
+                    args["num_bins"],
+                    args["output"],
+                    actual_days,
+                    mutex,
+                    args["extensive_log"],
+                ),
+            )
+            for n in range(args["threads"])
+        ]
+
+        for a, d in product(partition_files, repeat=2):
+            job_queue.put(Job(a, d))
+
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+
+    for file_name in partition_files:
+        os.remove(file_name)
+    end = datetime.now()
+    print("end program:", end)
+    print("duration:", end - start)
+
+
+def task_main(my_id, jobs, min_support_threshold, min_conf, num_bins, result_file, all_days, mutex, do_log):
+    log(f"[Start Worker {my_id}]", True)
+    while True:
+        try:
+            job = jobs.get_nowait()
+        except queue.Empty:
+            log(f"[Exit Worker {my_id}]", True)
+            return
+
+        antecedent_file = job.antecedents
+        consequent_file = job.consequents
+
+        log(f"Worker {my_id}: {antecedent_file} - {consequent_file}", do_log)
+
+        # get indexes change -> dates
+        with open(antecedent_file) as f:
+            antecedents = json.load(f)
+        with open(consequent_file) as f:
+            consequents = json.load(f)
+
+        # build indexes date -> changes
+        daily_antecedents = defaultdict(set)
+        for change, occurences in antecedents.items():
+            for date in occurences:
+                daily_antecedents[date].add(change)
+
+        daily_consequents = defaultdict(set)
+        for change, occurences in consequents.items():
+            for date in occurences:
+                daily_consequents[date].add(change)
+
+        result = get_histograms_of_partitions(
+            antecedents,
+            daily_antecedents,
+            consequents,
+            daily_consequents,
+            min_support_threshold,
+            min_conf,
+            all_days,
+            num_bins,
+            do_log,
+        )
+
+        del antecedents
+        del consequents
+        del daily_antecedents
+        del daily_consequents
+
+        with mutex:
+            write_rules(result, result_file)
+        del result
+
+
+def write_rules(rules, result_file):
+    with open(result_file, "a") as f:
+        for antecedent, consequents in rules.items():
+            for consequent, hist in consequents.items():
+                hist_string = f"\"[{', '.join([str(x) for x in hist.bins()])}]\""
+                f.write(
+                    f"{antecedent};{consequent};{hist.abs_support()};{hist.confidence()};{hist.lift};{hist_string}\n"
+                )
 
 
 if __name__ == "__main__":
-    main()
+    create_histograms(parse_args())

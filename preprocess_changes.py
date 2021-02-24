@@ -15,6 +15,12 @@ def parse_args():
         help="File with occurences per change (expect Python dict as .json)",
     )
     ap.add_argument(
+        "--filter_periodic",
+        "-fp",
+        action="store_true",
+        help="Remove periodic changes",
+    )
+    ap.add_argument(
         "--periodic_threshold",
         type=float,
         help="Threshold for filtering periodic changes, i.e. share of changes that happen on same day in month or week or within same interval",
@@ -24,7 +30,7 @@ def parse_args():
 
 
 def start_day_representation(num_changes, occurences):
-    if num_changes < 200000:
+    if num_changes < 200000 or len(occurences) < 2:
         return occurences[0]
     # if num_changes < 1000000:
     return f"{occurences[0]}-{occurences[1]}"
@@ -41,10 +47,6 @@ def group_simultaneous_changes(all_changes):
     start_days = defaultdict(list)
     for change, occurences in all_changes.items():
         start_days[start_day_representation(len(all_changes), occurences)].append(change)
-
-    start_day_counts = defaultdict(int)
-    for changes in start_days.values():
-        start_day_counts[len(changes)] += 1
 
     for same_start_group in start_days.values():
         for i in range(len(same_start_group)):
@@ -132,10 +134,9 @@ def same_date(occurences, all_days, threshold):
     return min_day_ratio >= threshold
 
 
-def main():
+def main(args):
     start = datetime.now()
     print("start:", start)
-    args = parse_args()
 
     # get index change -> dates
     with open(args["change_file"]) as f:
@@ -149,10 +150,11 @@ def main():
         for item in group_items:
             del all_changes[item]
 
-    # filter periodic_changes
-    # periodic_changes = find_periodic_changes(all_changes, args["periodic_threshold"])
-    # for change in periodic_changes:
-    #    del all_changes[change]
+    if args["filter_periodic"]:
+        # filter periodic_changes
+        periodic_changes = find_periodic_changes(all_changes, args["periodic_threshold"])
+        for change in periodic_changes:
+            del all_changes[change]
 
     print(f"{len(all_changes)} changes remaining")
 
@@ -169,4 +171,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(parse_args())
