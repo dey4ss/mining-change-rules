@@ -15,7 +15,7 @@ from create_histograms import create_histograms
 
 def parse_args():
     ap = argparse.ArgumentParser(description="Benchmarks histogram creation")
-    ap.add_argument("change_file", type=str, help="File with index change -> occurences as Python JSON dictionary")
+    ap.add_argument("change_file", type=str, help="File with index change -> occurrences as Python JSON dictionary")
     ap.add_argument("dates_file", type=str, help="File with dates as JSON list")
     ap.add_argument(
         "--output", "-o", type=str, help="Output file. Default none, results are printed to console", default=None
@@ -30,13 +30,16 @@ def parse_args():
 
 @contextmanager
 def capture_log(file_name):
-    with open(file_name, "w") as devnull:
+    with open(file_name, "w") as log_file:
         old_stdout = sys.stdout
-        sys.stdout = devnull
+        old_stderr = sys.stderr
+        sys.stdout = log_file
+        sys.stderr = log_file
         try:
             yield
         finally:
             sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
 
 class ExperimentConfig(dict):
@@ -94,12 +97,12 @@ class Benchmark:
         for benchmark, num_benchmark in zip(self.benchmarks, range(1, len(self.benchmarks) + 1)):
             result = self.__run_experiment(num_benchmark, benchmark[0], benchmark[1], benchmark[2])
             run_summary = {
-                variable[1]: {
+                value: {
                     "rules": runs[0].num_rules,
                     "runs": [r.runtime for r in runs],
-                    "input": runs[0].input_size,
+                    "filtered_input": runs[0].input_size,
                 }
-                for variable, runs in result.items()
+                for value, runs in result.items()
             }
 
             fixed_values = ExperimentConfig(benchmark[2])
@@ -139,7 +142,7 @@ class Benchmark:
 
         for value in variable_values:
             config[variable_key] = value
-            print(f"{self.indent(1)}{variable_key} = {value}")
+            print(f"{self.__indent(1)}{variable_key} = {value}")
             item_start = time()
             for run in range(1, self.num_runs + 1):
                 item_run_start = time()
@@ -156,29 +159,34 @@ class Benchmark:
                 num_rules = None
                 input_size = None
 
-                try:
-                    with open(config["output"]) as f:
-                        num_rules = len(f.readlines())
-                    os.remove(config["output"])
-                except FileNotFoundError:
-                    self.warn("Could not open output file.")
+                if p.exitcode == 0:
+                    try:
+                        with open(config["output"]) as f:
+                            num_rules = len(f.readlines())
+                        os.remove(config["output"])
+                    except FileNotFoundError:
+                        self.__warn("Could not open output file.")
+                else:
+                    self.__warn(f"An error occurred while running the item. See {log_path} for details.")
+                    self.keep_logs = True
                 try:
                     with open(log_path) as f:
                         for line in f:
                             if line.startswith("input:"):
                                 input_size = int(filtered_input_pattern.search(line).group(0))
                 except FileNotFoundError:
-                    self.warn(f"Could not open log file {log_path}.")
+                    self.__warn(f"Could not open log file {log_path}.")
                 except IndexError:
-                    self.warn("Malformed log file. Could not find filtered input size.")
-                results[(variable_key, value)].append(BenchmarkResult(num_rules, runtime, input_size))
+                    self.__warn(f"Malformed log file {log_file}. Could not find filtered input size.")
+                    self.keep_logs = True
+                results[value].append(BenchmarkResult(num_rules, runtime, input_size))
 
             item_end = time()
             item_runtime = round(item_end - item_start, 3)
-            item_results = results[(variable_key, value)]
+            item_results = results[value]
             mean_runtime = sum([r.runtime for r in item_results]) / self.num_runs
             summary = (
-                f"{self.indent(2)}--> executed {self.num_runs} time(s) "
+                f"{self.__indent(2)}--> executed {self.num_runs} time(s) "
                 + f"in {item_runtime} s"
                 + f" ({round(mean_runtime, 3)} s/iter), "
                 + f"{item_results[0].num_rules} rules, "
@@ -187,22 +195,47 @@ class Benchmark:
             print(summary)
         return results
 
-    def indent(self, level):
+    def __indent(self, level):
         return " " * 4 * level
 
-    def warn(self, message):
-        print(f"{self.indent(2)}[WARNING] {message}\n{self.indent(3)}Results are not accurate.")
+    def __warn(self, message):
+        print(f"{self.__indent(2)}[WARNING] {message}\n{self.__indent(3)}Results are not accurate.")
 
 
-def reduce_changes(all_change_occurences, shuffled_changes, num_changes, path):
+def reduce_changes(change_occurrences, shuffled_changes, num_changes):
     changes_to_keep = set(shuffled_changes[:num_changes])
-    keep_occurences = {
-        change: occurences for change, occurences in all_change_occurences.items() if change in changes_to_keep
+    keep_occurrences = {
+        change: occurrences for change, occurrences in change_occurrences.items() if change in changes_to_keep
     }
+    return keep_occurrences
+
+
+def save_reduced_changes(change_occurrences, shuffled_changes, num_changes, path):
+    reduced_changes = reduce_changes(change_occurrences, shuffled_changes, num_changes)
     file_name = os.path.join(path, f"{num_changes}_changes.json")
     with open(file_name, "w") as f:
-        json.dump(keep_occurences, f)
+        json.dump(reduced_changes, f)
     return file_name
+
+
+def save_reduced_days(change_occurrences, days, num_steps, path):
+    indexes = [min(round(i * len(days) / num_steps), len(days) - 1) for i in range(1, num_steps + 1)]
+    file_names = list()
+    num_changes = len(change_occurrences)
+
+    for index in indexes:
+        max_date = days[index]
+        num_days = index + 1
+        reduced_days = {
+            change: [date for date in occurrences if date <= max_date]
+            for change, occurrences in change_occurrences.items()
+        }
+        file_name = os.path.join(path, f"{num_days}_days_{num_changes}_changes.json")
+        with open(file_name, "w") as f:
+            json.dump(reduced_days, f)
+        file_names.append(file_name)
+
+    return file_names
 
 
 def main(change_file, dates_file, runs, output, log_path, keep_logs):
@@ -213,23 +246,28 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs):
 
     if output:
         print(f"- Output is {output}")
-    print(f"- Perform {runs} run(s)")
+    print(f"- Perform {runs} run(s) per item")
     print(f"- Logs are stored at {log_path}")
     print(f"- Logs will{' not ' if keep_logs else ' '}be deleted after benchmarking")
 
     random.seed(42)
     with open(change_file) as f:
-        all_change_occurences = json.load(f)
-    all_changes = list(all_change_occurences.keys())
+        all_change_occurrences = json.load(f)
+    all_changes = list(all_change_occurrences.keys())
     print(f"- Done reading base dataset {change_file} with {len(all_changes)} changes")
     random.shuffle(all_changes)
 
+    with open(dates_file) as f:
+        days = json.load(f)
+
     input_sizes = [1000, 2500, 5000, 7500, 10000, 15000, 20000, 30000]
-    sized_inputs = [reduce_changes(all_change_occurences, all_changes, num, log_path) for num in input_sizes]
+    sized_inputs = [save_reduced_changes(all_change_occurrences, all_changes, num, log_path) for num in input_sizes]
     base_input = sized_inputs[0]
-    print(f"- Generated {len(input_sizes)} partial datasets")
+    changes_1000 = reduce_changes(all_change_occurrences, all_changes, 1000)
+    date_differing_inputs = save_reduced_days(changes_1000, days, 10, log_path)
+    print(f"- Generated {len(input_sizes) + len(date_differing_inputs)} partial datasets")
     del all_changes
-    del all_change_occurences
+    del all_change_occurrences
 
     # min confidence [0, 0.05, 0.1, ... 1.0]
     fixed_values = {"change_file": base_input}
@@ -248,32 +286,41 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs):
     benchmark.add_experiment("max_sup", [x / 100 for x in range(0, 105, 5)], fixed_values)
 
     # 1 to 15 threads
-    # fixed_values = {"change_file": base_input}
-    benchmark.add_experiment("threads", list(range(1, 15)), fixed_values)
+    #fixed_values = {"change_file": base_input}
+    benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
+
+    # 1 to 15 threads
+    fixed_values = {"change_file": sized_inputs[2]}
+    benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
 
     # 1 to 11 bins
-    # fixed_values = {"change_file": base_input}
+    fixed_values = {"change_file": base_input}
     benchmark.add_experiment("num_bins", list(range(1, 12)), fixed_values)
 
+    # number of days [36, 72, ... 359]
+    fixed_values = {}
+    benchmark.add_experiment("change_file", date_differing_inputs, fixed_values)
+
     # partition size [100, 200, 300, ..., 1000]
-    # fixed_values = {"change_file": sized_inputs[0]}
+    fixed_values = {"change_file": sized_inputs[0]}
     partition_sizes = list(range(100, 1001, 100))
     benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
     # partition size [100, 200, 300, ..., 1000, 2000, ..., 5000]
-    fixed_values = {"change_file": sized_inputs[3]}
+    fixed_values = {"change_file": sized_inputs[2]}
+    partition_sizes = list(range(100, 1001, 100))
     partition_sizes_2 = partition_sizes + list(range(2000, 5001, 1000))
-    benchmark.add_experiment("partition_size", partition_sizes_2, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
     # partition size [100, 200, 300, ..., 1000, 2000, ..., 10000]
     fixed_values = {"change_file": sized_inputs[4]}
     partition_sizes_3 = partition_sizes_2 + list(range(6000, 10001, 1000))
-    benchmark.add_experiment("partition_size", partition_sizes_3, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
     # partition size [100, 200, 300, ..., , 1000, 2000, ..., 10000, 12000, ..., 20000]
     fixed_values = {"change_file": sized_inputs[6]}
     partition_sizes_4 = partition_sizes_3 + list(range(12000, 20001, 2000))
-    benchmark.add_experiment("partition_size", partition_sizes_4, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
     # input sizes
     fixed_values = {}

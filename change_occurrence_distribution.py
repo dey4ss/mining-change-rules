@@ -32,6 +32,9 @@ def main(input_file, output_path, file_extension, num_bins):
     tick_count = min(num_bins, 10)
     ticks = [round(i * num_days / tick_count) for i in range(tick_count + 1)]
 
+    if not os.path.isdir(output_path):
+        os.mkdir(output_path)
+
     sns.set()
     sns.set_theme(style="whitegrid")
     plt.xlabel("Number of occurrences")

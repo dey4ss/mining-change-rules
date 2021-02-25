@@ -13,12 +13,12 @@ from time import time
 
 
 def parse_args():
-    min_sup_default = 0.1
-    max_sup_default = 0.5
-    min_conf_default = 0.7
+    min_sup_default = 0.05
+    max_sup_default = 0.1
+    min_conf_default = 0.9
     thread_default = 10
     bin_default = 11
-    partition_default = 1000
+    partition_default = 200
 
     ap = argparse.ArgumentParser(description="Generates a list of changes with their occurrences, filtered by support.")
     ap.add_argument(
