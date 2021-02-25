@@ -4,8 +4,10 @@ import argparse
 import queue
 import os
 import multiprocessing as mp
+import sys
 
-from util import date_range, file_extension, Entity, Field
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from util.util import date_range, file_extension, Entity, Field
 
 
 def parse_args():

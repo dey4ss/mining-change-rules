@@ -2,12 +2,30 @@
 
 import argparse
 import json
+import multiprocessing as mp
 import os
 import queue
 import sys
-import multiprocessing as mp
 
-from util import date_range, file_extension
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from util.util import date_range, file_extension
+
+
+def parse_args():
+    ap = argparse.ArgumentParser(description="Extracts change transactions")
+    ap.add_argument("directory", type=str, help="Directory of the change files.")
+    ap.add_argument("--start", type=str, help="Start date. Default 2020-05-01", default="2020-05-01")
+    ap.add_argument("--end", type=str, help="End date. Default 2020-11-01", default="2020-11-01")
+    ap.add_argument("--base_date", type=str, help="Date of whole data start. Default 2019-11-01", default="2019-11-01")
+    ap.add_argument("--output", type=str, help="Output directory. Default ./changes", default="changes")
+    ap.add_argument("--num_tables", type=int, help="Number of tables per date. -1 means all. Default -1", default=-1)
+    ap.add_argument("--threads", type=int, help="Number of threads. Default 2", default=2)
+    ap.add_argument("--distinguish_null", action="store_true", help="Count null value changes as insert/delete.")
+    ap.add_argument(
+        "--included_tables", type=str, default="", help="File with tables to include. If not specified, use all."
+    )
+    ap.add_argument("--excluded_tables", type=str, default="", help="File with tables to exclude.")
+    return vars(ap.parse_args())
 
 
 def find_row_match(rows, row_id):
@@ -275,23 +293,6 @@ def find_daily_changes(
         save_changes(row_add_delete, os.path.join(output, f"{job.subdir}_row_insert_delete.csv"))
         save_changes(new_tables, os.path.join(output, f"{job.subdir}_table_insert.csv"))
         new_table_queue.put(NewTables(job.subdir, len(new_tables)))
-
-
-def parse_args():
-    ap = argparse.ArgumentParser(description="Extracts change transactions")
-    ap.add_argument("directory", type=str, help="Directory of the change files.")
-    ap.add_argument("--start", type=str, help="Start date. Default 2020-05-01", default="2020-05-01")
-    ap.add_argument("--end", type=str, help="End date. Default 2020-11-01", default="2020-11-01")
-    ap.add_argument("--base_date", type=str, help="Date of whole data start. Default 2019-11-01", default="2019-11-01")
-    ap.add_argument("--output", type=str, help="Output directory. Default ./changes", default="changes")
-    ap.add_argument("--num_tables", type=int, help="Number of tables per date. -1 means all. Default -1", default=-1)
-    ap.add_argument("--threads", type=int, help="Number of threads. Default 2", default=2)
-    ap.add_argument("--distinguish_null", action="store_true", help="Count null value changes as insert/delete.")
-    ap.add_argument(
-        "--included_tables", type=str, default="", help="File with tables to include. If not specified, use all."
-    )
-    ap.add_argument("--excluded_tables", type=str, default="", help="File with tables to exclude.")
-    return vars(ap.parse_args())
 
 
 def main():

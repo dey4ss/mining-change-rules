@@ -5,9 +5,11 @@ import json
 import math
 import multiprocessing as mp
 import os
+import sys
 from collections import defaultdict
 
-from util import Entity
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from util.util import Entity
 
 
 def parse_args():

@@ -1,8 +1,24 @@
 #!/usr/bin/python3
+
+import argparse
 import json
 import os
+import sys
 
-from util import read_rule
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from util.util import read_rule
+
+
+def parse_args():
+    ap = argparse.ArgumentParser(
+        description="Filter change dependencies s.t. left and right side share the same domain"
+    )
+    ap.add_argument("rule_file", type=str, help="File with rules stored as csv")
+    ap.add_argument("table_domain_file", type=str, help="File with an index table -> domain, python dict as JSON file")
+    ap.add_argument(
+        "change_groups_file", type=str, help="File with an index change group -> changes, python dict as JSON file"
+    )
+    return vars(ap.parse_args())
 
 
 def domains_from_id(change, table_domains, change_groups):
@@ -16,18 +32,17 @@ def domains_from_id(change, table_domains, change_groups):
     return domains
 
 
-def main():
-    path = "histograms_columns_not_periodic_filtered"
-    with open("table_to_domain.json") as f:
+def main(rule_file, table_domain_file, change_groups_file):
+    with open(table_domain_file) as f:
         table_domains = json.load(f)
 
-    with open(os.path.join(path, "change_groups.json")) as f:
+    with open(change_groups_file) as f:
         change_groups = json.load(f)
 
     result = list()
     num_before = 0
 
-    with open(os.path.join(path, "histogram_columns_9_05_1.csv")) as f:
+    with open(rule_file) as f:
         for line in f:
             num_before += 1
             parts = line.split(";")
@@ -45,10 +60,11 @@ def main():
     print("before:", num_before)
     print("now", len(result))
 
-    with open(os.path.join(path, "histogram_columns_9_05_1_domain_filtered.csv"), "w") as f:
+    with open(f"{rule_file}_domain_filtered.csv", "w") as f:
         for l in result:
             f.write(l)
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args["rule_file"], args["table_domain_file"], args["change_groups_file"])

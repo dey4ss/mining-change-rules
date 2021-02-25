@@ -10,7 +10,8 @@ from collections import defaultdict
 from contextlib import contextmanager
 from time import time
 
-from create_histograms import create_histograms
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from rule_generation.create_histograms import create_histograms
 
 
 def parse_args():
@@ -286,7 +287,7 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs):
     benchmark.add_experiment("max_sup", [x / 100 for x in range(0, 105, 5)], fixed_values)
 
     # 1 to 15 threads
-    #fixed_values = {"change_file": base_input}
+    # fixed_values = {"change_file": base_input}
     benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
 
     # 1 to 15 threads

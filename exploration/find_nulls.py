@@ -2,11 +2,13 @@
 
 import argparse
 import json
+import multiprocessing as mp
 import os
 import queue
-import multiprocessing as mp
+import sys
 
-from find_changes import date_range, file_extension
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from util.util import date_range, file_extension
 
 
 def find_nulls(path, start, end, threads):
