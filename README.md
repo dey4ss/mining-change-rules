@@ -6,10 +6,10 @@ This is the central code repository of the [_Discovering Change Dependencies_](h
 
 Changes in databases occur permanently.
 The aim of this project is to discover dependencies within these changes.
-We base our research on open-government data provided by [Socrata](https://www.tylertech.com/products/socrata/data-platform).
-As part of the [IANVS priject](https://hpi.de/naumann/projects/data-profiling-and-analytics/change-exploration.html), all public datasets have been received before on a daily basis during one year.
-Pre-processing has been done to identify columns and rows, thus, our data basis are completely re-constructed relational tables as JSON files.
-Whenever such a table is being changed, we have a file containing the whole table, corresponding to the time point of the change.
+We base our research on open-government data provided by [Socrata](https://www.tylertech.com/products/socrata).
+As part of the [IANVS project](https://hpi.de/naumann/projects/data-profiling-and-analytics/change-exploration.html), all public datasets have been received before on a daily basis during one year.
+Pre-processing has been done to identify columns and rows, thus, our data basis consists of completely re-constructed relational tables as JSON files.
+Whenever such a table is being changed, there is a file in our dataset containing the whole table, corresponding to the time point of the change.
 Out of these files, we extract the changes, transform them, and generate rules for change dependencies.
 
 ## /exploration
@@ -32,7 +32,7 @@ Note that this means that the insertion of a field results as an insertiion _wit
 We create seperate files for each entity level (table, column, row).
 
 `filter_support.py` merges the aggregated changes into one file, multiple entity levels are supported.
-If a change's occurrences are under a minimum support or over a maximum support, the change is discarded
+If a change's occurrences are below a minimum support or over a maximum support, the change is discarded.
 The output is an index of changes to their occurrences.
 
 `preprocess_changes.py` uses this index and groups changes that always occur together.
@@ -44,7 +44,7 @@ Scripts to find change dependencies.
 `create_histograms.py` mines rules out of an index of changes to their occurrences.
 
 `map_domains.py` is specific to our dataset.
-Multiple agencies publish data in the socrata data lake, and we want to limit the discovered rules to be within the same _domain_.
+Multiple agencies publish data in the socrata data lake, and we want to ensure that the discovered rules share the same _domain_.
 This file creates an index of a table to its domain.
 
 `filter_domains.py` uses this mapping to filter the discovered rules to have the same domain for antecedent and consequent.
@@ -56,5 +56,5 @@ Scripts to measure the rule generation.
 
 `analyze_benchmarks.py` generates plots based on the benchmark results.
 
-`change_occurrence_distribution.py` generates a histrogram of number of occurrences per change.
+`change_occurrence_distribution.py` generates a histogram of the number of occurrences per change.
 
