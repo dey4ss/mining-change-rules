@@ -33,12 +33,6 @@ def parse_args():
     )
     ap.add_argument("output", type=str, help=f"Output file path")
     ap.add_argument(
-        "--threads",
-        type=int,
-        help=f"Number of threads. Default {thread_default}",
-        default=thread_default,
-    )
-    ap.add_argument(
         "--min_sup",
         type=float,
         help=f"Minimal support. Default {min_sup_default}",
@@ -67,6 +61,12 @@ def parse_args():
         type=int,
         help=f"Partition Size. Default {partition_default}",
         default=partition_default,
+    )
+    ap.add_argument(
+        "--threads",
+        type=int,
+        help=f"Number of threads. Default {thread_default}",
+        default=thread_default,
     )
     ap.add_argument(
         "--extensive_log",
@@ -304,6 +304,13 @@ def create_histograms(args):
         partition_files.append(file_name)
         with open(file_name, "w") as f:
             json.dump(partition, f)
+    num_combinations = len(partition_files) ** 2
+    num_threads = args["threads"]
+    if num_combinations < num_threads:
+        print(
+            "[WARNING] Number of threads exceeds partition combinations.",
+            f"{num_threads - num_combinations} core(s) will not be used.",
+        )
 
     # initialize parallel setup
     with mp.Manager() as manager:
@@ -324,7 +331,7 @@ def create_histograms(args):
                     args["extensive_log"],
                 ),
             )
-            for n in range(args["threads"])
+            for n in range(num_threads)
         ]
 
         for a, d in product(partition_files, repeat=2):

@@ -14,14 +14,6 @@ from collections import defaultdict
 from benchmark_histogram_creation import ExperimentConfig
 
 
-def benchmark_parameters():
-    prohibited_parameters = {"timepoint_file", "output", "extensive_log", "change_file"}
-    all_parameters = ExperimentConfig.default_values().keys()
-    parameters = [p for p in all_parameters if p not in prohibited_parameters]
-    parameters += ["input_size", "num_days"]
-    return parameters
-
-
 def parse_args():
     ap = argparse.ArgumentParser(description="Creates plots from a benchmark output file")
     ap.add_argument("benchmark_file", type=str, help="Path to an output file of benchmark_historgam_creation.py ")
@@ -45,6 +37,14 @@ def parse_args():
         choices={"rules", "filtered_input"},
     )
     return vars(ap.parse_args())
+
+
+def benchmark_parameters():
+    prohibited_parameters = {"timepoint_file", "output", "extensive_log", "change_file"}
+    all_parameters = ExperimentConfig.default_values().keys()
+    parameters = [p for p in all_parameters if p not in prohibited_parameters]
+    parameters += ["input_size", "num_days"]
+    return parameters
 
 
 def input_size_from_filename(file_path):
@@ -146,11 +146,11 @@ def main(input_file, output_path, file_extension, forced_parameters, second_meas
 
         ax1.set_xlabel(param_readable)
         ax1.set_ylabel("Run-time [s]")
-        ax1 = sns.scatterplot(x=parameter_disambiguation, y="runtime", data=plot_data)
+        ax1 = sns.scatterplot(x=parameter_disambiguation, y="runtime", data=plot_data, marker="^")
         max_value = max(runtimes_avg)
         ax1.set_ylim(0, max_value * 1.05)
 
-        legend = [mlines.Line2D([], [], color="blue", marker="o", label="Run-time", lw=0)]
+        legend = [mlines.Line2D([], [], color="blue", marker="^", label="Run-time", lw=0)]
         plt.title(f"Run-time w.r.t. {param_readable}\n{fixed_value_str}")
 
         if second_measure:

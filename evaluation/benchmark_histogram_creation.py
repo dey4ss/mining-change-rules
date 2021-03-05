@@ -1,6 +1,8 @@
 #!/usr/bin/python3
+
 import argparse
 import json
+import math
 import multiprocessing as mp
 import os
 import random
@@ -19,12 +21,26 @@ def parse_args():
     ap.add_argument("change_file", type=str, help="File with index change -> occurrences as Python JSON dictionary")
     ap.add_argument("dates_file", type=str, help="File with dates as JSON list")
     ap.add_argument(
+        "--experiments",
+        "-e",
+        nargs="+",
+        default=None,
+        type=int,
+        help="Experiments to run. Default all",
+    )
+    ap.add_argument("--keep_logs", "-l", help="Keep log files of benchmark runs", action="store_true")
+    ap.add_argument(
+        "--log_path", "-p", type=str, help="Path for intermediate log files. Default ./benchmark", default="benchmark"
+    )
+    ap.add_argument(
         "--output", "-o", type=str, help="Output file. Default none, results are printed to console", default=None
     )
     ap.add_argument("--runs", "-r", type=int, help="Number of runs. Default 3", default=3)
-    ap.add_argument("--keep_logs", help="Keep log files of benchmark runs. Default delete them", action="store_true")
     ap.add_argument(
-        "--log_path", type=str, help="Path for intermediate log files. Default ./benchmark", default="benchmark"
+        "--store_separate",
+        "-s",
+        help="Store a file for each experiment. Only effective if output file is provided",
+        action="store_true",
     )
     return vars(ap.parse_args())
 
@@ -79,7 +95,7 @@ class BenchmarkResult:
 
 
 class Benchmark:
-    def __init__(self, num_runs, output_path, log_path, keep_logs, dates_file):
+    def __init__(self, num_runs, output_path, log_path, keep_logs, dates_file, store_all):
         self.num_runs = num_runs
         self.benchmarks = list()
         self.output_path = output_path
@@ -87,6 +103,8 @@ class Benchmark:
         self.log_path = log_path
         self.keep_logs = keep_logs
         self.dates_file = dates_file
+        self.experiments_to_run = list()
+        self.store_all = store_all
 
     def add_experiment(self, variable, variable_values, fixed_values):
         self.benchmarks.append((variable, variable_values, fixed_values))
@@ -95,8 +113,14 @@ class Benchmark:
         start = time()
         self.output["num_runs"] = self.num_runs
         self.output["experiments"] = list()
-        for benchmark, num_benchmark in zip(self.benchmarks, range(1, len(self.benchmarks) + 1)):
-            result = self.__run_experiment(num_benchmark, benchmark[0], benchmark[1], benchmark[2])
+        output_base_path = self.output_path.split(".")[0]
+        print(f"- Run {len(self.experiments_to_run)} benchmarks")
+        for benchmark_id in self.experiments_to_run:
+            if benchmark_id < 1 or benchmark_id > len(self.benchmarks):
+                self.__warn(f"Skipping invalid Experiment number {benchmark_id}")
+                continue
+            benchmark = self.benchmarks[benchmark_id - 1]
+            result = self.__run_experiment(benchmark_id, benchmark[0], benchmark[1], benchmark[2])
             run_summary = {
                 value: {
                     "rules": runs[0].num_rules,
@@ -119,9 +143,15 @@ class Benchmark:
             }
             self.output["experiments"].append(result_entry)
 
+            if self.output_path and self.store_all:
+                experiment_output = {"num_runs": self.num_runs, "experiments": list()}
+                experiment_output["experiments"].append(result_entry)
+                experiment_output_path = f"{output_base_path}_experiment-{benchmark_id}.json"
+                with open(experiment_output_path, "w") as f:
+                    json.dump(experiment_output, f, indent=2)
+
         end = time()
-        duration = round(end - start, 3)
-        print(f"\nRan {len(self.benchmarks)} experiments in {duration} s")
+        print(f"\n- Ran {len(self.experiments_to_run)} experiments in {round(end - start)} s")
 
         if self.output_path:
             with open(self.output_path, "w") as f:
@@ -239,8 +269,8 @@ def save_reduced_days(change_occurrences, days, num_steps, path):
     return file_names
 
 
-def main(change_file, dates_file, runs, output, log_path, keep_logs):
-    benchmark = Benchmark(runs, output, log_path, keep_logs, dates_file)
+def main(change_file, dates_file, runs, output, log_path, keep_logs, experiments, store_all):
+    benchmark = Benchmark(runs, output, log_path, keep_logs, dates_file, store_all)
 
     if not os.path.isdir(log_path):
         os.mkdir(log_path)
@@ -261,7 +291,8 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs):
     with open(dates_file) as f:
         days = json.load(f)
 
-    input_sizes = [1000, 2500, 5000, 7500, 10000, 15000, 20000, 30000]
+    partition_sizes = [100, 200, 300, 400, 500, 1000, 2500, 5000]
+    input_sizes = [1000, 2500, 5000, 7500, 10000, 15000, 20000]
     sized_inputs = [save_reduced_changes(all_change_occurrences, all_changes, num, log_path) for num in input_sizes]
     base_input = sized_inputs[0]
     changes_1000 = reduce_changes(all_change_occurrences, all_changes, 1000)
@@ -271,61 +302,62 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs):
     del all_change_occurrences
 
     # min confidence [0, 0.05, 0.1, ... 1.0]
-    fixed_values = {"change_file": base_input}
+    fixed_values = {"change_file": base_input, "threads": 1}
     benchmark.add_experiment("min_conf", [x / 100 for x in range(0, 105, 5)], fixed_values)
 
     # min support [0, 0.05, 0.1, ..., 1]
-    # fixed_values = {"change_file": base_input}
-    benchmark.add_experiment("min_sup", [x / 100 for x in range(0, 105, 5)], fixed_values)
-
-    # min support [0, 0.05, 0.1, ..., 1]
-    fixed_values = {"change_file": sized_inputs[2]}
     benchmark.add_experiment("min_sup", [x / 100 for x in range(0, 105, 5)], fixed_values)
 
     # max support [0, 0.05, 0.1, ..., 1]
-    fixed_values = {"change_file": base_input}
     benchmark.add_experiment("max_sup", [x / 100 for x in range(0, 105, 5)], fixed_values)
 
-    # 1 to 15 threads
-    # fixed_values = {"change_file": base_input}
-    benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
-
-    # 1 to 15 threads
-    fixed_values = {"change_file": sized_inputs[2]}
-    benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
-
     # 1 to 11 bins
-    fixed_values = {"change_file": base_input}
     benchmark.add_experiment("num_bins", list(range(1, 12)), fixed_values)
 
     # number of days [36, 72, ... 359]
-    fixed_values = {}
+    fixed_values = {"threads": 1}
     benchmark.add_experiment("change_file", date_differing_inputs, fixed_values)
 
-    # partition size [100, 200, 300, ..., 1000]
-    fixed_values = {"change_file": sized_inputs[0]}
-    partition_sizes = list(range(100, 1001, 100))
-    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
+    # 1 to 15 threads
+    fixed_values = {"change_file": base_input}
+    benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
 
-    # partition size [100, 200, 300, ..., 1000, 2000, ..., 5000]
+    # 1 to 15 threads
     fixed_values = {"change_file": sized_inputs[2]}
-    partition_sizes = list(range(100, 1001, 100))
-    partition_sizes_2 = partition_sizes + list(range(2000, 5001, 1000))
-    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
+    benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
 
-    # partition size [100, 200, 300, ..., 1000, 2000, ..., 10000]
-    fixed_values = {"change_file": sized_inputs[4]}
-    partition_sizes_3 = partition_sizes_2 + list(range(6000, 10001, 1000))
-    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
+    # partition size [100, 200, ..., 500, 1000]
+    input_size = 1000
+    fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
+    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
+    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
 
-    # partition size [100, 200, 300, ..., , 1000, 2000, ..., 10000, 12000, ..., 20000]
-    fixed_values = {"change_file": sized_inputs[6]}
-    partition_sizes_4 = partition_sizes_3 + list(range(12000, 20001, 2000))
-    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
+    # partition size [100, 200, ..., 500, 1000]
+    input_size = 5000
+    fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
+    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
+    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
+
+    # partition size [100, 200, ..., 500, 1000, 2500]
+    input_size = 10000
+    fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
+    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
+    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
+
+    # partition size [100, 200, ..., 500, 1000, 2500, 5000]
+    input_size = 20000
+    fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
+    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
+    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
 
     # input sizes
     fixed_values = {}
     benchmark.add_experiment("change_file", sized_inputs, fixed_values)
+
+    if experiments:
+        benchmark.experiments_to_run = experiments
+    else:
+        benchmark.experiments_to_run = list(range(1, len(benchmark.benchmarks) + 1))
 
     benchmark.run()
 
@@ -337,4 +369,13 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args["change_file"], args["dates_file"], args["runs"], args["output"], args["log_path"], args["keep_logs"])
+    main(
+        args["change_file"],
+        args["dates_file"],
+        args["runs"],
+        args["output"],
+        args["log_path"],
+        args["keep_logs"],
+        args["experiments"],
+        args["store_separate"],
+    )
