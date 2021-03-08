@@ -291,8 +291,8 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs, experiments
     with open(dates_file) as f:
         days = json.load(f)
 
-    partition_sizes = [100, 200, 300, 400, 500, 1000, 2500, 5000]
-    input_sizes = [1000, 2500, 5000, 7500, 10000, 15000, 20000]
+    partition_sizes = [100, 200, 300, 400, 500, 1000, 1750, 2500, 3750, 5000]
+    input_sizes = [1000, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000]
     sized_inputs = [save_reduced_changes(all_change_occurrences, all_changes, num, log_path) for num in input_sizes]
     base_input = sized_inputs[0]
     changes_1000 = reduce_changes(all_change_occurrences, all_changes, 1000)
