@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
@@ -46,6 +47,18 @@ def parse_args():
         action="store_true",
         help="Merge all .json files in given directory",
     )
+    ap.add_argument(
+        "--title",
+        "-t",
+        action="store_true",
+        help="Add title",
+    )
+    ap.add_argument(
+        "--caption",
+        "-c",
+        action="store_true",
+        help="Add caption",
+    )
     return vars(ap.parse_args())
 
 
@@ -71,21 +84,16 @@ def input_days_from_filename(file_path):
 
 def parameter_print_names():
     return {
-        "input_size": "Number of changes",
-        "min_conf": "Min confidence",
-        "min_sup": "Min support",
-        "max_sup": "Max support",
-        "threads": "Number of threads",
-        "num_bins": "Window size",
-        "partition_size": "Partition size",
-        "num_days": "Number of time points",
-    }
-
-
-def second_measure_readable():
-    return {
-        "rules": ("# rules", "Number of rules"),
-        "filtered_input": ("Filtered input size", "Number of changes"),
+        "rules": ("# rules", "number of rules"),
+        "filtered_input": ("filtered input size", "number of changes"),
+        "input_size": ("# changes", "number of changes"),
+        "min_conf": ("min conf.", "minimum confidence"),
+        "min_sup": ("min sup.", "minimum support"),
+        "max_sup": ("max sup.", "maximum support"),
+        "threads": ("# threads", "number of threads"),
+        "num_bins": ("window size", "window size"),
+        "partition_size": ("partition size", "partition size"),
+        "num_days": ("# time points", "number of time points"),
     }
 
 
@@ -93,17 +101,19 @@ def make_plot(
     variable,
     plot_data,
     fixed_values,
+    add_title,
+    add_caption,
     second_measure=None,
     second_measure_values=None,
     variable_names=None,
     log_scale=False,
 ):
     markers = ["^", "X", "o", "D"]
-    colors = ["blue", "orange", "green", "red"]
+    colors = sns.color_palette("tab10")
     sns.set()
     sns.set_theme(style="whitegrid")
-    param_readable = variable if variable_names else parameter_print_names()[variable]
-    _, ax1 = plt.subplots(figsize=(6, 5))
+    print_names = parameter_print_names()
+    param_readable = variable if variable_names else print_names[variable][1]
 
     if variable_names is None:
         plot_data = [plot_data]
@@ -114,30 +124,34 @@ def make_plot(
             if v != canonical_fixed_values:
                 canonical_fixed_values = {}
 
+    height = 3 if variable == "partition size" else 3
+    width = 8 if variable == "partition size" else 4
+    _, ax1 = plt.subplots(figsize=(width, height))
+
     max_value = 0
     fixed_value_str = ", ".join([f"{k}={v}" for k, v in canonical_fixed_values.items()])
     data_ids = len(variable_names) if variable_names else 1
-    print_names = parameter_print_names()
 
     for data, marker, color, i in zip(plot_data, markers, colors, range(data_ids)):
         x = data[0]
         y = data[1]
         max_value = max(max(y), max_value)
         variable_name = variable_names[i] if variable_names else None
-        variable_printable = print_names[variable_name] if variable_name in print_names else variable_name
+        variable_printable = print_names[variable_name][0] if variable_name in print_names else variable_name
         label = variable_printable if variable_names else None
         ax1 = sns.lineplot(x=x, y=y, marker=marker, color=color, label=label, mew=0)
         legend = [mlines.Line2D([], [], color=color, marker=marker, label="Run-time")]
-    plt.title(f"Run-time w.r.t. {param_readable}\n{fixed_value_str}")
-    ax1.set_xlabel(param_readable)
-    ax1.set_ylabel("Run-time [s]")
-    ax1.set_ylim(0, max_value * 1.05)
+    if add_title:
+        plt.title(f"Run-time w.r.t. {param_readable}\n{fixed_value_str}")
+    if add_caption:
+        ax1.set_xlabel(param_readable)
+    ax1.set_ylabel("run-time [s]")
 
     if second_measure:
         if len(plot_data) > 1:
             raise ValueError("Second measure is only supported for a single dataset.")
-        label = second_measure_readable()[second_measure][1]
-        legend_entry = second_measure_readable()[second_measure][0]
+        label = print_names[second_measure][1]
+        legend_entry = print_names[second_measure][0]
         ax2 = ax1.twinx()
         ax2.set_ylabel(label)
         ax2 = sns.lineplot(x=second_measure_values[0], y=second_measure_values[1], color="black", marker="x", mew=0)
@@ -145,18 +159,24 @@ def make_plot(
         ax2.set_ylim(0, max_second_measure * 1.05)
         legend.append(mlines.Line2D([], [], color="black", marker="x", label=legend_entry))
 
+    if variable == "partition size":
+        plt.legend(ncol=2)
+        plt.yscale("log")
+    else:
+        ax1.set_ylim(0, max_value * 1.05)
     plt.tight_layout()
+
     if second_measure:
         plt.legend(handles=legend)
 
 
-def plot_multiple(experiments, title):
+def plot_multiple(experiments, title, add_title, add_caption):
     plot_data = list()
     variable_names = list()
     fixed_values = list()
     for e in experiments:
         variable = e[0]
-        if title == "Partition Size":
+        if title == "partition size":
             if "input_size" in e[1]:
                 size = e[1]["input_size"]
             else:
@@ -165,10 +185,10 @@ def plot_multiple(experiments, title):
         variable_names.append(variable)
         fixed_values.append(e[1])
         plot_data.append(e[2])
-    make_plot(title, plot_data, fixed_values, variable_names=variable_names)
+    make_plot(title, plot_data, fixed_values, add_title, add_caption, variable_names=variable_names)
 
 
-def main(input_path, output_path, file_extension, forced_parameters, second_measure, merge):
+def main(input_path, output_path, file_extension, forced_parameters, second_measure, merge, add_title, add_caption):
     default_config = ExperimentConfig.default_values()
     del default_config["output"]
     del default_config["extensive_log"]
@@ -246,6 +266,8 @@ def main(input_path, output_path, file_extension, forced_parameters, second_meas
             parameter_disambiguation,
             plot_data,
             fixed_values,
+            add_title,
+            add_caption,
             second_measure=second_measure,
             second_measure_values=(values, second_measure_values),
         )
@@ -257,16 +279,19 @@ def main(input_path, output_path, file_extension, forced_parameters, second_meas
         seen_parameters[parameter_disambiguation] += 1
         parsed_experiments.append((parameter_disambiguation, fixed_values, plot_data))
 
-    sup_experiments = [e for e in parsed_experiments if e[0].endswith("sup")]
+    print("sup + conf")
+    sup_experiments = [e for e in parsed_experiments if e[0].endswith("sup") or e[0].endswith("conf")]
+    sup_experiments.sort(key=lambda e: e[0] if "sup" in e[0] else "z", reverse=True)
     if len(sup_experiments) > 1:
-        plot_multiple(sup_experiments, "Support")
-        plt.savefig(os.path.join(output_path, f"support_all.{file_extension}"), dpi=300)
+        plot_multiple(sup_experiments, "threshold", add_title, add_caption)
+        plt.savefig(os.path.join(output_path, f"sup_conf.{file_extension}"), dpi=300)
         plt.close()
 
+    print("partition sizes")
     partition_experiments = [e for e in parsed_experiments if e[0] == "partition_size"]
     partition_experiments.sort(key=lambda e: e[1]["input_size"] if "input_size" in e[1] else 1000, reverse=True)
     if len(partition_experiments) > 1:
-        plot_multiple(partition_experiments, "Partition Size")
+        plot_multiple(partition_experiments, "partition size", add_title, add_caption)
         plt.savefig(os.path.join(output_path, f"partition_size_all.{file_extension}"), dpi=300)
         plt.close()
 
@@ -280,4 +305,6 @@ if __name__ == "__main__":
         args["force_parameters"],
         args["second_measure"],
         args["merge_multiple"],
+        args["title"],
+        args["caption"],
     )

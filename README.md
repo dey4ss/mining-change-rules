@@ -12,14 +12,16 @@ Pre-processing has been done to identify columns and rows, thus, our data basis 
 Whenever such a table is being changed, there is a file in our dataset containing the whole table, corresponding to the time point of the change.
 Out of these files, we extract the changes, transform them, and generate rules for change dependencies.
 
-## /exploration
+## exploration
 Scripts to get in touch with the data.
 
 `find_nulls.py` is used to get an overview of the usage of common representations of `NULL`.
 
 `count_changes.py` aggregates extracted change data s.t. we get an overview on how often changes occcur.
 
-## /preprocessing
+`aggregated_change_counts.py` summarizes the number of aggregated changes per entity level and change type.
+
+## preprocessing
 Scripts to transform the given data into the format our proposed algorithm accepts.
 
 `find_changes.py` scans all JSON files of tables within a time period to identify changes.
@@ -38,7 +40,7 @@ The output is an index of changes to their occurrences.
 `preprocess_changes.py` uses this index and groups changes that always occur together.
 If desired, changes that happen regularly are filtered out.
 
-## /rule_generation
+## rule_generation
 Scripts to find change dependencies.
 
 `create_histograms.py` mines rules out of an index of changes to their occurrences.
@@ -49,7 +51,7 @@ This file creates an index of a table to its domain.
 
 `filter_domains.py` uses this mapping to filter the discovered rules to have the same domain for antecedent and consequent.
 
-## /evaluation
+## evaluation
 Scripts to measure the rule generation.
 
 `benchmark_histogram_creation.py` runs different experiments with changing parameters to evaluate the performance of the rule mining step.

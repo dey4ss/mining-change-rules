@@ -277,11 +277,13 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs, experiments
 
     if output:
         print(f"- Output is {output}")
+        if store_all:
+            print(f"- Each experiment is stored separately")
     print(f"- Perform {runs} run(s) per item")
     print(f"- Logs are stored at {log_path}")
     print(f"- Logs will{' not ' if keep_logs else ' '}be deleted after benchmarking")
-
     random.seed(42)
+
     with open(change_file) as f:
         all_change_occurrences = json.load(f)
     all_changes = list(all_change_occurrences.keys())
@@ -318,37 +320,33 @@ def main(change_file, dates_file, runs, output, log_path, keep_logs, experiments
     fixed_values = {"threads": 1}
     benchmark.add_experiment("change_file", date_differing_inputs, fixed_values)
 
-    # 1 to 15 threads
+    # 1 to 15 threads, 1000 changes
     fixed_values = {"change_file": base_input}
     benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
 
-    # 1 to 15 threads
+    # 1 to 15 threads, 5000 changes
     fixed_values = {"change_file": sized_inputs[2]}
     benchmark.add_experiment("threads", list(range(1, 16)), fixed_values)
 
-    # partition size [100, 200, ..., 500, 1000]
+    # partition size, 1000 changes
     input_size = 1000
     fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
-    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
-    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
-    # partition size [100, 200, ..., 500, 1000]
+    # partition size, 5000 changes
     input_size = 5000
     fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
-    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
-    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
-    # partition size [100, 200, ..., 500, 1000, 2500]
+    # partition size, 10000 changes
     input_size = 10000
     fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
-    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
-    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
-    # partition size [100, 200, ..., 500, 1000, 2500, 5000]
+    # partition size, 20000 changes
     input_size = 20000
     fixed_values = {"change_file": sized_inputs[input_sizes.index(input_size)]}
-    my_partition_sizes = [s for s in partition_sizes if s <= 1000 or math.ceil(input_size / s) ** 2 > 9]
-    benchmark.add_experiment("partition_size", my_partition_sizes, fixed_values)
+    benchmark.add_experiment("partition_size", partition_sizes, fixed_values)
 
     # input sizes
     fixed_values = {}

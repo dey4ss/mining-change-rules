@@ -20,16 +20,17 @@ def parse_args():
         "--format", "-f", type=str, help="Plot file format", choices=["eps", "pdf", "png", "svg"], default="png"
     )
     ap.add_argument("--num_bins", "-b", type=int, help="Number of bins. Default 10", default=10)
+    ap.add_argument("--log_scale", "-l", action="store_true", help="Log scale for y axis")
     return vars(ap.parse_args())
 
 
-def main(input_file, output_path, file_extension, num_bins):
+def main(input_file, output_path, file_extension, num_bins, log_scale):
     with open(input_file) as f:
         changes = json.load(f)
     print(f"{len(changes)} changes loaded")
     change_counts = [len(occurrences) for occurrences in changes.values()]
     num_days = 359
-    tick_count = min(num_bins, 10)
+    tick_count = min(num_bins, 12)
     ticks = [round(i * num_days / tick_count) for i in range(tick_count + 1)]
 
     if not os.path.isdir(output_path):
@@ -37,11 +38,13 @@ def main(input_file, output_path, file_extension, num_bins):
 
     sns.set()
     sns.set_theme(style="whitegrid")
-    plt.xlabel("Number of occurrences")
-    plt.ylabel("Count")
+    plt.xlabel("number of occurrences")
+    plt.ylabel("count")
     plt.title("Distribution of change occurrences")
     sns.histplot(data=change_counts, stat="count", bins=num_bins)
     plt.xticks(ticks)
+    if log_scale:
+        plt.yscale("log")
     plt.tight_layout()
     plt.savefig(os.path.join(output_path, f"change_occurrences_{num_bins}-bins.{file_extension}"), dpi=300)
     plt.close()
@@ -49,4 +52,4 @@ def main(input_file, output_path, file_extension, num_bins):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args["change_file"], args["output_path"], args["format"], args["num_bins"])
+    main(args["change_file"], args["output_path"], args["format"], args["num_bins"], args["log_scale"])
