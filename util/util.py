@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 from collections import defaultdict
 from enum import Enum, auto, unique
+from matplotlib import ticker
 
 
 def date_range(start, end):
@@ -36,6 +37,14 @@ def read_rules(file_name):
             antecedent, consequent, hist = read_rule(line)
             result[antecedent][consequent] = hist
     return result
+
+
+def format_number(value, decimals=0):
+    return f"{value:,.{decimals}f}"
+
+
+def number_formatter(decimals=0):
+    return ticker.FuncFormatter(lambda x, p: format_number(x, decimals))
 
 
 @unique

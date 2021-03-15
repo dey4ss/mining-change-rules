@@ -9,10 +9,13 @@ import matplotlib.lines as mlines
 import os
 import re
 import seaborn as sns
+import sys
 import pandas as pd
 from collections import defaultdict
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
 from benchmark_histogram_creation import ExperimentConfig
+from util.util import format_number, number_formatter
 
 
 def parse_args():
@@ -132,6 +135,11 @@ def make_plot(
     fixed_value_str = ", ".join([f"{k}={v}" for k, v in canonical_fixed_values.items()])
     data_ids = len(variable_names) if variable_names else 1
 
+    x_decimals = any([any([x % 1 != 0 for x in data[0]]) for data in plot_data])
+    x_decimals = 1 if x_decimals else 0
+    ax1.get_xaxis().set_major_formatter(number_formatter(decimals=x_decimals))
+    ax1.get_yaxis().set_major_formatter(number_formatter())
+
     for data, marker, color, i in zip(plot_data, markers, colors, range(data_ids)):
         x = data[0]
         y = data[1]
@@ -181,7 +189,7 @@ def plot_multiple(experiments, title, add_title, add_caption):
                 size = e[1]["input_size"]
             else:
                 size = 1000
-            variable = f"{size} changes"
+            variable = f"{format_number(size)} changes"
         variable_names.append(variable)
         fixed_values.append(e[1])
         plot_data.append(e[2])
