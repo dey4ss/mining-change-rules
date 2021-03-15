@@ -1,4 +1,5 @@
 import pandas as pd
+import seaborn as sns
 import sys
 from collections import defaultdict
 from enum import Enum, auto, unique
@@ -45,6 +46,14 @@ def format_number(value, decimals=0, sep="\u2009"):
 
 def number_formatter(decimals=0, sep="\u2009"):
     return FuncFormatter(lambda x, p: format_number(x, decimals, sep))
+
+
+def markers():
+    return ["^", "X", "o", "D"]
+
+
+def colors():
+    return sns.color_palette("tab10")
 
 
 @unique

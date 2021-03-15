@@ -2,20 +2,17 @@
 
 import argparse
 import json
-import math
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import os
 import re
 import seaborn as sns
 import sys
-import pandas as pd
 from collections import defaultdict
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
 from benchmark_histogram_creation import ExperimentConfig
-from util.util import format_number, number_formatter
+from util.util import format_number, number_formatter, colors, markers
 
 
 def parse_args():
@@ -111,8 +108,6 @@ def make_plot(
     variable_names=None,
     log_scale=False,
 ):
-    markers = ["^", "X", "o", "D"]
-    colors = sns.color_palette("tab10")
     sns.set()
     sns.set_theme(style="whitegrid")
     print_names = parameter_print_names()
@@ -140,14 +135,14 @@ def make_plot(
     ax1.get_xaxis().set_major_formatter(number_formatter(decimals=x_decimals))
     ax1.get_yaxis().set_major_formatter(number_formatter())
 
-    for data, marker, color, i in zip(plot_data, markers, colors, range(data_ids)):
+    for data, marker, color, i in zip(plot_data, markers(), colors(), range(data_ids)):
         x = data[0]
         y = data[1]
         max_value = max(max(y), max_value)
         variable_name = variable_names[i] if variable_names else None
         variable_printable = print_names[variable_name][0] if variable_name in print_names else variable_name
         label = variable_printable if variable_names else None
-        ax1 = sns.lineplot(x=x, y=y, marker=marker, color=color, label=label, mew=0)
+        sns.lineplot(x=x, y=y, marker=marker, color=color, label=label, mew=0)
         legend = [mlines.Line2D([], [], color=color, marker=marker, label="Run-time")]
     if add_title:
         plt.title(f"Run-time w.r.t. {param_readable}\n{fixed_value_str}")
@@ -170,6 +165,7 @@ def make_plot(
     if variable == "partition size":
         plt.legend(ncol=2)
         plt.yscale("log")
+        ax1.set_ylim([10 ** 0, ax1.get_ylim()[1]])
     else:
         ax1.set_ylim(0, max_value * 1.05)
     plt.tight_layout()
