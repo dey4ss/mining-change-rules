@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 from collections import defaultdict
 from enum import Enum, auto, unique
-from matplotlib import ticker
+from matplotlib.ticker import FuncFormatter
 
 
 def date_range(start, end):
@@ -39,12 +39,12 @@ def read_rules(file_name):
     return result
 
 
-def format_number(value, decimals=0):
-    return f"{value:,.{decimals}f}"
+def format_number(value, decimals=0, sep="\u2009"):
+    return f"{value:,.{decimals}f}".replace(",", sep)
 
 
-def number_formatter(decimals=0):
-    return ticker.FuncFormatter(lambda x, p: format_number(x, decimals))
+def number_formatter(decimals=0, sep="\u2009"):
+    return FuncFormatter(lambda x, p: format_number(x, decimals, sep))
 
 
 @unique
@@ -56,7 +56,7 @@ class Entity(Enum):
 
     @classmethod
     def string_representations(cls):
-        return [entity.to_str() for entity in Entity]
+        return [entity.to_str() for entity in cls]
 
     def to_str(self):
         return self.name.lower()
