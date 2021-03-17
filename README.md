@@ -40,8 +40,8 @@ The output is an index of changes to their occurrences.
 `preprocess_changes.py` uses this index and groups changes that always occur together.
 If desired, changes that happen regularly are filtered out.
 
-## rule_generation
-Scripts to find change dependencies.
+## rule_generation and interestingness
+Scripts to find and score change dependencies.
 
 `create_histograms.py` mines rules out of an index of changes to their occurrences.
 
@@ -51,6 +51,8 @@ This file creates an index of a table to its domain.
 
 `filter_domains.py` uses this mapping to filter the discovered rules to have the same domain for antecedent and consequent.
 
+`histogram2pdf.py` transforms rules from histograms to probability distributions and assigns the interestingness score. 
+
 ## evaluation
 Scripts to measure the rule generation.
 
@@ -59,4 +61,6 @@ Scripts to measure the rule generation.
 `analyze_benchmarks.py` generates plots based on the benchmark results.
 
 `change_occurrence_distribution.py` generates a histogram of the number of occurrences per change.
+
+`interestingness_validity_results.csv` contains the interestingness and validity results.
 
