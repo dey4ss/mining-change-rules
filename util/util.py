@@ -49,7 +49,7 @@ def number_formatter(decimals=0, sep="\u2009"):
 
 
 def markers():
-    return ["^", "X", "o", "D"]
+    return ["^", "X", "s", "D", ".", "o"]
 
 
 def colors():
@@ -68,7 +68,7 @@ class Entity(Enum):
         return [entity.to_str() for entity in cls]
 
     def to_str(self):
-        return self.name.lower()
+        return super().name.lower()
 
 
 class Field:

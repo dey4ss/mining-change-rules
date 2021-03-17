@@ -122,7 +122,7 @@ def make_plot(
             if v != canonical_fixed_values:
                 canonical_fixed_values = {}
 
-    height = 3 if variable == "partition size" else 3
+    height = 4 if add_title or add_caption else 3
     width = 8 if variable == "partition size" else 4
     _, ax1 = plt.subplots(figsize=(width, height))
 

@@ -113,7 +113,8 @@ class Benchmark:
         start = time()
         self.output["num_runs"] = self.num_runs
         self.output["experiments"] = list()
-        output_base_path = self.output_path.split(".")[0]
+        if self.output_path:
+            output_base_path = self.output_path.split(".")[0]
         print(f"- Run {len(self.experiments_to_run)} benchmarks")
         for benchmark_id in self.experiments_to_run:
             if benchmark_id < 1 or benchmark_id > len(self.benchmarks):

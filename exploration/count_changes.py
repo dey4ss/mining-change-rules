@@ -75,7 +75,7 @@ def get_added_deleted_entities(entity, path, date):
 def main():
     args = parse_args()
     changes = dict()
-    dates = date_range("2019-11-02", "2020-04-30")
+    dates = date_range("2019-11-02", "2020-11-01")
 
     entity = [entity for entity in list(Entity) if entity.to_str() == args["level"]][0]
 
