@@ -62,3 +62,5 @@ Scripts to measure the rule generation.
 
 `change_occurrence_distribution.py` generates a histogram of the number of occurrences per change.
 
+`interestingness_validity_results.csv` contains the interestingness and validity results.
+
