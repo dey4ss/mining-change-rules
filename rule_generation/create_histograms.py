@@ -64,6 +64,7 @@ def parse_args():
     )
     ap.add_argument(
         "--threads",
+        "-t",
         type=int,
         help=f"Number of threads. Default {thread_default}",
         default=thread_default,

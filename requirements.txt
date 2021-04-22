@@ -1,5 +1,6 @@
 numpy
 pandas
+py7zr
 sklearn
 scipy
 matplotlib
