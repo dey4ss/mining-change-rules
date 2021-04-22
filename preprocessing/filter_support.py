@@ -22,22 +22,13 @@ def parse_args():
     )
     ap.add_argument("change_dir", type=str, help="Directory of the change files.")
     ap.add_argument(
-        "--threads",
-        type=int,
-        help=f"Number of threads. Default {thread_default}",
-        default=thread_default,
+        "--threads", type=int, help=f"Number of threads. Default {thread_default}", default=thread_default,
     )
     ap.add_argument(
-        "--min_sup",
-        type=float,
-        help=f"Minimal support. Default {min_sup_default}",
-        default=min_sup_default,
+        "--min_sup", type=float, help=f"Minimal support. Default {min_sup_default}", default=min_sup_default,
     )
     ap.add_argument(
-        "--max_sup",
-        type=float,
-        help=f"Maximal support. Default {max_sup_default}",
-        default=max_sup_default,
+        "--max_sup", type=float, help=f"Maximal support. Default {max_sup_default}", default=max_sup_default,
     )
     ap.add_argument(
         "--entity",

@@ -22,57 +22,32 @@ def parse_args():
 
     ap = argparse.ArgumentParser(description="Generates a list of changes with their occurrences, filtered by support.")
     ap.add_argument(
-        "change_file",
-        type=str,
-        help="File with occurrences per change (expect Python dict as JSON)",
+        "change_file", type=str, help="File with occurrences per change (expect Python dict as JSON)",
     )
     ap.add_argument(
-        "timepoint_file",
-        type=str,
-        help="File with list of dates (JSON file)",
+        "timepoint_file", type=str, help="File with list of dates (JSON file)",
     )
     ap.add_argument("output", type=str, help=f"Output file path")
     ap.add_argument(
-        "--min_sup",
-        type=float,
-        help=f"Minimal support. Default {min_sup_default}",
-        default=min_sup_default,
+        "--min_sup", type=float, help=f"Minimal support. Default {min_sup_default}", default=min_sup_default,
     )
     ap.add_argument(
-        "--max_sup",
-        type=float,
-        help=f"Maximal support. Default {max_sup_default}",
-        default=max_sup_default,
+        "--max_sup", type=float, help=f"Maximal support. Default {max_sup_default}", default=max_sup_default,
     )
     ap.add_argument(
-        "--min_conf",
-        type=float,
-        help=f"Minimal Confidence. Default {min_conf_default}",
-        default=min_conf_default,
+        "--min_conf", type=float, help=f"Minimal Confidence. Default {min_conf_default}", default=min_conf_default,
     )
     ap.add_argument(
-        "--num_bins",
-        type=int,
-        help=f"Bin count. Default {bin_default}",
-        default=bin_default,
+        "--num_bins", type=int, help=f"Bin count. Default {bin_default}", default=bin_default,
     )
     ap.add_argument(
-        "--partition_size",
-        type=int,
-        help=f"Partition Size. Default {partition_default}",
-        default=partition_default,
+        "--partition_size", type=int, help=f"Partition Size. Default {partition_default}", default=partition_default,
     )
     ap.add_argument(
-        "--threads",
-        "-t",
-        type=int,
-        help=f"Number of threads. Default {thread_default}",
-        default=thread_default,
+        "--threads", "-t", type=int, help=f"Number of threads. Default {thread_default}", default=thread_default,
     )
     ap.add_argument(
-        "--extensive_log",
-        action="store_true",
-        help=f"Detailed log messages",
+        "--extensive_log", action="store_true", help=f"Detailed log messages",
     )
     return vars(ap.parse_args())
 

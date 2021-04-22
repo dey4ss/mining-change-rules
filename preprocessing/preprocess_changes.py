@@ -10,15 +10,10 @@ from datetime import datetime
 def parse_args():
     ap = argparse.ArgumentParser(description="Preprocesses aggregated changes.")
     ap.add_argument(
-        "change_file",
-        type=str,
-        help="File with occurences per change (expect Python dict as .json)",
+        "change_file", type=str, help="File with occurences per change (expect Python dict as .json)",
     )
     ap.add_argument(
-        "--filter_periodic",
-        "-fp",
-        action="store_true",
-        help="Remove periodic changes",
+        "--filter_periodic", "-fp", action="store_true", help="Remove periodic changes",
     )
     ap.add_argument(
         "--periodic_threshold",

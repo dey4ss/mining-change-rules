@@ -117,9 +117,8 @@ class Field:
             Entity.Table: self.table,
             Entity.Column: sep.join([self.table, self.column]),
             Entity.Row: sep.join([self.table, self.row]),
-            Entity.Field: sep.join([self.table, self.column, self.row])
+            Entity.Field: sep.join([self.table, self.column, self.row]),
         }
         if not level in representations:
             raise ValueError("Unsupported entity.")
         return representations[level]
-

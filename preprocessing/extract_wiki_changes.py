@@ -13,12 +13,18 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
 from util.util import date_range, file_extension, Entity, Field
 
+
 def parse_args():
     ap = argparse.ArgumentParser(description="Extracts changes for Wikipedia infoboxes.")
     ap.add_argument("change_dir", type=str, help="Directory of the change archives.")
     ap.add_argument("out", type=str, help="Output file.")
     ap.add_argument(
-        "--entity", "-e", type=str, help=f"Entity to aggregate. Default: {Entity.Field.to_str()}", choices=[e.to_str() for e in Entity], default=Entity.Field.to_str()
+        "--entity",
+        "-e",
+        type=str,
+        help=f"Entity to aggregate. Default: {Entity.Field.to_str()}",
+        choices=[e.to_str() for e in Entity],
+        default=Entity.Field.to_str(),
     )
     ap.add_argument("--threads", "-t", type=int, help="Number of threads. Default 2", default=2)
     return vars(ap.parse_args())
@@ -34,7 +40,7 @@ def check_null_value(change, key):
 
 
 def sanitize(string):
-    return string.strip("\n\t -_").replace(" ","-").replace("\n","-").replace("_","-")
+    return string.strip("\n\t -_").replace(" ", "-").replace("\n", "-").replace("_", "-")
 
 
 def extract_changes(dir, file_queue, my_id, entity):
@@ -63,7 +69,7 @@ def extract_changes(dir, file_queue, my_id, entity):
                 if not template.startswith("infobox"):
                     continue
 
-                infobox = sanitize(template[len("infobox"):])
+                infobox = sanitize(template[len("infobox") :])
                 page_id = item["pageID"]
                 if store_pages:
                     page_name = item["pageTitle"]
@@ -86,6 +92,7 @@ def extract_changes(dir, file_queue, my_id, entity):
                         change = Field.get_with_level(entity, infobox, column, str(page_id))
                         change_id = f"{change.get_id(entity)}_{change_type}"
                         changes[change_id].add(date)
+
 
 def main(change_dir, out, entity, threads):
     with mp.Manager() as manager:

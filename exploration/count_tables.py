@@ -37,8 +37,7 @@ def main():
     args = parse_args()
     subdirs = date_range(args["start"], args["end"])
     find_changes(
-        subdirs,
-        args["directory"],
+        subdirs, args["directory"],
     )
 
 

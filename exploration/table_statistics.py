@@ -20,31 +20,21 @@ def parse_args():
     return vars(ap.parse_args())
 
 
-class TableInfo():
-
+class TableInfo:
     def __init__(self):
         self.columns = 0
         self.rows = 0
 
 
 def main(change_dir, threads):
-    subdirs = sorted(os.listdir(change_dir)) #[1:11]
+    subdirs = sorted(os.listdir(change_dir))  # [1:11]
 
     with mp.Manager() as manager:
         job_queue = manager.Queue()
         result_lock = manager.RLock()
         tables = manager.dict()
         workers = [
-            mp.Process(
-                target=daily_statistics,
-                args=(
-                    job_queue,
-                    change_dir,
-                    tables,
-                    result_lock,
-                    f"{n}".rjust(2),
-                ),
-            )
+            mp.Process(target=daily_statistics, args=(job_queue, change_dir, tables, result_lock, f"{n}".rjust(2),),)
             for n in range(threads)
         ]
 
@@ -74,7 +64,7 @@ def main(change_dir, threads):
 
 
 def daily_statistics(jobs, path, tables, table_lock, my_id):
-    shares = {"get": 0, "list":0, "work":0, "merge":0}
+    shares = {"get": 0, "list": 0, "work": 0, "merge": 0}
     last_t = 0
     last_c = 0
     last_r = 0
@@ -93,7 +83,9 @@ def daily_statistics(jobs, path, tables, table_lock, my_id):
             continue
         l = time()
         files = [f for f in os.listdir(current_dir) if f.endswith(file_extension())]
-        print(f"{date} [Worker {my_id}] ({len(files)}) {last_t}, {last_c}, {last_r} w:{shares['work']}, p:{last_p}, m:{shares['merge']}")
+        print(
+            f"{date} [Worker {my_id}] ({len(files)}) {last_t}, {last_c}, {last_r} w:{shares['work']}, p:{last_p}, m:{shares['merge']}"
+        )
         last_t = len(files)
 
         my_tables = defaultdict(TableInfo)
@@ -121,6 +113,7 @@ def daily_statistics(jobs, path, tables, table_lock, my_id):
         shares["list"] = w - l
         shares["work"] = m - w
         shares["merge"] = e - m
+
 
 def combine_results(all_tables, my_tables, table_lock):
     with table_lock:

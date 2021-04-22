@@ -23,10 +23,7 @@ def parse_args():
     ap.add_argument("--num_bins", "-b", type=int, help="Number of bins. Default 10", default=10)
     ap.add_argument("--log_scale", "-l", action="store_true", help="Log scale for y axis")
     ap.add_argument(
-        "--title",
-        "-t",
-        action="store_true",
-        help="Add title",
+        "--title", "-t", action="store_true", help="Add title",
     )
     return vars(ap.parse_args())
 

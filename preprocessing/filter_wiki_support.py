@@ -11,6 +11,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
 from util.util import date_range
 
+
 def parse_args():
     ap = argparse.ArgumentParser(description="Filters changes of Wikipedia infoboxes.")
     ap.add_argument("change_file", type=str, help="JSON dictionary of changes with their occurrences.")
@@ -24,7 +25,7 @@ def main(change_file, out, min_sup, max_sup):
     with open(change_file, encoding="utf-8") as f:
         all_changes = json.load(f)
 
-    #all_changes_dates = dict()
+    # all_changes_dates = dict()
     print(f"input: {len(all_changes)} changes")
 
     min_date = "2020-11-11"
@@ -32,11 +33,11 @@ def main(change_file, out, min_sup, max_sup):
 
     for change, occurrences in all_changes.items():
         # occurrence_dates = sorted(set([date[:10] for date in occurrences]))
-        #all_changes_dates[change] = occurrence_dates
+        # all_changes_dates[change] = occurrence_dates
         min_date = min(min_date, occurrences[0])
         max_date = max(max_date, occurrences[-1])
 
-    #del all_changes
+    # del all_changes
     all_dates = date_range(min_date, max_date)
 
     print(min_date, max_date)
