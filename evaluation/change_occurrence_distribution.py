@@ -3,6 +3,7 @@
 import argparse
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import re
 import seaborn as sns
@@ -10,7 +11,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
 from benchmark_histogram_creation import ExperimentConfig
-from util.util import format_number, number_formatter, colors, markers
+from util.util import format_number, number_formatter, colors, markers, date_range
 
 
 def parse_args():
@@ -35,11 +36,18 @@ def main(input_file, output_path, file_extension, num_bins, log_scale, show_titl
     with open(input_file) as f:
         changes = json.load(f)
     print(f"{len(changes)} changes loaded")
+    min_date = "2021-01-01"
+    max_date = "1900-01-01"
+    for occurrences in changes.values():
+        min_date = min(min_date, min(occurrences))
+        max_date = max(max_date, max(occurrences))
     change_counts = [len(occurrences) for occurrences in changes.values()]
-    change_count_sum = sum(change_counts)
-    print(f"{change_count_sum} occurrences; avg. {change_count_sum / len(changes)} occurrences/change")
-    num_days = 359
-    tick_count = min(num_bins, 12)
+    # num_days = 359
+    num_days = len(date_range(min_date, max_date))
+    print(f"{sum(change_counts)} occurrences; avg. {np.mean(change_counts)} occurrences/change (median {np.median(change_counts)}); {num_days} days")
+    items_one_change = sum([x for x in change_counts if x == 1])
+    print(f"{100 * items_one_change / len(changes)} % only have one occurrence")
+    tick_count = min(num_bins, 10)
     ticks = [round(i * num_days / tick_count) for i in range(tick_count + 1)]
 
     if not os.path.isdir(output_path):
@@ -52,7 +60,7 @@ def main(input_file, output_path, file_extension, num_bins, log_scale, show_titl
     plt.ylabel("count")
     if show_title:
         plt.title("Distribution of change occurrences")
-    ax = sns.histplot(data=change_counts, stat="count", bins=num_bins, color=colors()[0])
+    ax = sns.histplot(data=change_counts, stat="count", bins=num_bins, binrange=(0, num_days), color=colors()[0])
     plt.xticks(ticks)
     x_min = 0
     if log_scale:
@@ -62,7 +70,8 @@ def main(input_file, output_path, file_extension, num_bins, log_scale, show_titl
         ax.get_yaxis().set_major_formatter(number_formatter())
     ax.set_ylim([x_min, ax.get_ylim()[1]])
     plt.tight_layout()
-    plt.savefig(os.path.join(output_path, f"change_occurrences_{num_bins}-bins.{file_extension}"), dpi=300)
+    log_indicator = "_log" if log_scale else ""
+    plt.savefig(os.path.join(output_path, f"change_occurrences_{num_bins}-bins{log_indicator}.{file_extension}"), dpi=300)
     plt.close()
 
 
