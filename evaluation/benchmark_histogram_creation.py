@@ -21,12 +21,7 @@ def parse_args():
     ap.add_argument("change_file", type=str, help="File with index change -> occurrences as Python JSON dictionary")
     ap.add_argument("dates_file", type=str, help="File with dates as JSON list")
     ap.add_argument(
-        "--experiments",
-        "-e",
-        nargs="+",
-        default=None,
-        type=int,
-        help="Experiments to run. Default all",
+        "--experiments", "-e", nargs="+", default=None, type=int, help="Experiments to run. Default all",
     )
     ap.add_argument("--keep_logs", "-l", help="Keep log files of benchmark runs", action="store_true")
     ap.add_argument(

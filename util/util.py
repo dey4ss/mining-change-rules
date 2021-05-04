@@ -90,32 +90,35 @@ class Field:
     @classmethod
     def get_with_level(cls, level, table, column, row):
         if level == Entity.Table:
-            return cls(table, None, None)
+            return cls(table, "", "")
         if level == Entity.Column:
-            return cls(table, column, None)
+            return cls(table, column, "")
         if level == Entity.Row:
-            return cls(table, None, row)
+            return cls(table, "", row)
         return cls(table, column, row)
 
     @classmethod
     def get_csv_header(cls, level: Entity) -> str:
-        if level == Entity.Table:
-            return "table"
-        if level == Entity.Column:
-            return "table;column"
-        if level == Entity.Row:
-            return "table;row"
-        if level == Entity.Field:
-            return "table;column;row"
-        raise ValueError("Unsupported entity.")
+        entities_needed = [Entity.Table]
+        if level in [Entity.Column, Entity.Field]:
+            entities_needed.append(Entity.Column)
+        if level in [Entity.Row, Entity.Field]:
+            entities_needed.append(Entity.Row)
+        return ";".join([e.to_str() for e in entities_needed])
 
     def get_csv(self, level: Entity) -> str:
-        if level == Entity.Table:
-            return self.table
-        if level == Entity.Column:
-            return ";".join([self.table, self.column])
-        if level == Entity.Row:
-            return ";".join([self.table, self.row])
-        if level == Entity.Field:
-            return ";".join([self.table, self.column, self.row])
-        raise ValueError("Unsupported entity.")
+        return self._join_by_level(level, ";")
+
+    def get_id(self, level: Entity) -> str:
+        return self._join_by_level(level, "_")
+
+    def _join_by_level(self, level: Entity, sep: str) -> str:
+        representations = {
+            Entity.Table: self.table,
+            Entity.Column: sep.join([self.table, self.column]),
+            Entity.Row: sep.join([self.table, self.row]),
+            Entity.Field: sep.join([self.table, self.column, self.row]),
+        }
+        if not level in representations:
+            raise ValueError("Unsupported entity.")
+        return representations[level]

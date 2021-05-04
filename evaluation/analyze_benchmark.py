@@ -42,22 +42,13 @@ def parse_args():
         choices={"rules", "filtered_input"},
     )
     ap.add_argument(
-        "--merge_multiple",
-        "-m",
-        action="store_true",
-        help="Merge all .json files in given directory",
+        "--merge_multiple", "-m", action="store_true", help="Merge all .json files in given directory",
     )
     ap.add_argument(
-        "--title",
-        "-t",
-        action="store_true",
-        help="Add title",
+        "--title", "-t", action="store_true", help="Add title",
     )
     ap.add_argument(
-        "--caption",
-        "-c",
-        action="store_true",
-        help="Add caption",
+        "--caption", "-c", action="store_true", help="Add caption",
     )
     return vars(ap.parse_args())
 
