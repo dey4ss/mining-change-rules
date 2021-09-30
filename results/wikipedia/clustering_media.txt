@@ -1,0 +1,330 @@
+start: 2021-08-04 09:49:44.698058
+
+And She Was	-->	(Nothing But) Flowers
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=4687523
+infobox-song_genre_129880667-0_u	infobox-song_genre_135175722-0_u
+
+(Nothing But) Flowers	-->	And She Was
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=4267960
+infobox-song_genre_135175722-0_u	infobox-song_genre_129880667-0_u
+
+And She Was	-->	Sax and Violins
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=16837516
+infobox-song_genre_129880667-0_u	infobox-song_genre_204365999-0_u
+
+(Nothing But) Flowers	-->	Sax and Violins
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=16837516
+infobox-song_genre_135175722-0_u	infobox-song_genre_204365999-0_u
+
+And She Was	-->	Cities (song)
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=36846099
+infobox-song_genre_129880667-0_u	infobox-song_genre_509523371-0_u
+
+(Nothing But) Flowers	-->	Cities (song)
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=36846099
+infobox-song_genre_135175722-0_u	infobox-song_genre_509523371-0_u
+
+And She Was	-->	Road to Nowhere
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=2905575
+infobox-song_genre_129880667-0_u	infobox-song_genre_71412168-0_u
+
+And She Was	-->	Wild Wild Life
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=5680676
+infobox-song_genre_129880667-0_u	infobox-song_genre_121120176-0_u
+
+And She Was	-->	Girlfriend Is Better
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=8344562
+infobox-song_genre_129880667-0_u	infobox-song_genre_324393983-0_u
+
+(Nothing But) Flowers	-->	Wild Wild Life
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=5680676
+infobox-song_genre_135175722-0_u	infobox-song_genre_121120176-0_u
+
+(Nothing But) Flowers	-->	Road to Nowhere
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=2905575
+infobox-song_genre_135175722-0_u	infobox-song_genre_71412168-0_u
+
+(Nothing But) Flowers	-->	Girlfriend Is Better
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=8344562
+infobox-song_genre_135175722-0_u	infobox-song_genre_324393983-0_u
+
+And She Was	-->	Crosseyed and Painless
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=23742066
+infobox-song_genre_129880667-0_u	infobox-song_genre_509379049-0_u
+
+(Nothing But) Flowers	-->	Crosseyed and Painless
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=23742066
+infobox-song_genre_135175722-0_u	infobox-song_genre_509379049-0_u
+
+And She Was	-->	Once in a Lifetime (Talking Heads song)
+http://en.wikipedia.org/?curid=4267960	http://en.wikipedia.org/?curid=3716083
+infobox-song_genre_129880667-0_u	infobox-song_genre_38195624-0_u
+
+(Nothing But) Flowers	-->	Once in a Lifetime (Talking Heads song)
+http://en.wikipedia.org/?curid=4687523	http://en.wikipedia.org/?curid=3716083
+infobox-song_genre_135175722-0_u	infobox-song_genre_38195624-0_u
+
+Sax and Violins	-->	Cities (song)
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=36846099
+infobox-song_genre_204365999-0_u	infobox-song_genre_509523371-0_u
+
+Sax and Violins	-->	(Nothing But) Flowers
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=4687523
+infobox-song_genre_204365999-0_u	infobox-song_genre_135175722-0_u
+
+Sax and Violins	-->	And She Was
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=4267960
+infobox-song_genre_204365999-0_u	infobox-song_genre_129880667-0_u
+
+Sax and Violins	-->	Wild Wild Life
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=5680676
+infobox-song_genre_204365999-0_u	infobox-song_genre_121120176-0_u
+
+Sax and Violins	-->	Road to Nowhere
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=2905575
+infobox-song_genre_204365999-0_u	infobox-song_genre_71412168-0_u
+
+Sax and Violins	-->	Girlfriend Is Better
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=8344562
+infobox-song_genre_204365999-0_u	infobox-song_genre_324393983-0_u
+
+Sax and Violins	-->	Crosseyed and Painless
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=23742066
+infobox-song_genre_204365999-0_u	infobox-song_genre_509379049-0_u
+
+Sax and Violins	-->	Once in a Lifetime (Talking Heads song)
+http://en.wikipedia.org/?curid=16837516	http://en.wikipedia.org/?curid=3716083
+infobox-song_genre_204365999-0_u	infobox-song_genre_38195624-0_u
+
+Tere Mere Beech	-->	Joru Ka Ghulam (2014 TV series)
+http://en.wikipedia.org/?curid=48629399	http://en.wikipedia.org/?curid=47629798
+infobox-television_num-episodes_691982876-0_u	infobox-television_num-episodes_677908831-0_u
+
+E=MC² (Mariah Carey album)	-->	Memoirs of an Imperfect Angel
+http://en.wikipedia.org/?curid=10953974	http://en.wikipedia.org/?curid=22878898
+infobox-album_released_126717266-0_u	infobox-album_released_291726775-0_u
+
+Off the Hook (Xscape album)	-->	My Little Secret
+http://en.wikipedia.org/?curid=8583069	http://en.wikipedia.org/?curid=22865131
+infobox-album_genre_106802116-0_u	infobox-song_genre_291021991-0_u
+
+Mickey Mouse Clubhouse (season 2)	-->	Mickey Mouse Clubhouse (season 3)
+http://en.wikipedia.org/?curid=35572378	http://en.wikipedia.org/?curid=35572745
+infobox-television-season_first-aired_488484452-0_u	infobox-television-season_first-aired_488492844-0_u
+
+Mickey Mouse Clubhouse (season 2)	-->	Mickey Mouse Clubhouse (season 3)
+http://en.wikipedia.org/?curid=35572378	http://en.wikipedia.org/?curid=35572745
+infobox-television-season_first-aired_488484452-0_u	infobox-television-season_last-aired_488492844-0_u
+
+Mickey Mouse Clubhouse (season 2)	-->	Mickey Mouse Clubhouse (season 3)
+http://en.wikipedia.org/?curid=35572378	http://en.wikipedia.org/?curid=35572745
+infobox-television-season_last-aired_488484452-0_u	infobox-television-season_first-aired_488492844-0_u
+
+Mickey Mouse Clubhouse (season 2)	-->	Mickey Mouse Clubhouse (season 3)
+http://en.wikipedia.org/?curid=35572378	http://en.wikipedia.org/?curid=35572745
+infobox-television-season_last-aired_488484452-0_u	infobox-television-season_last-aired_488492844-0_u
+
+Game of Thrones (season 4)	-->	Game of Thrones (season 6)
+http://en.wikipedia.org/?curid=38710170	http://en.wikipedia.org/?curid=43186937
+infobox-television-season_starring_549021643-0_u	infobox-television-season_starring_672132045-0_u
+
+Game of Thrones (season 4)	-->	Game of Thrones (season 5)
+http://en.wikipedia.org/?curid=38710170	http://en.wikipedia.org/?curid=43186905
+infobox-television-season_starring_549021643-0_u	infobox-television-season_starring_618572990-0_u
+
+Agar Tum Saath Ho	-->	TV Ke Uss Paar
+http://en.wikipedia.org/?curid=51711782	http://en.wikipedia.org/?curid=51771013
+infobox-television_num-episodes_740764718-0_u	infobox-television_num-episodes_741457875-0_u
+
+Turn the Music Louder (Rumble)	-->	Not Letting Go
+http://en.wikipedia.org/?curid=48192118	http://en.wikipedia.org/?curid=46687613
+infobox-song_album_687180959-0_u	infobox-song_album_662059232-0_u
+
+Bhaag Bakool Bhaag	-->	Devanshi (TV series)
+http://en.wikipedia.org/?curid=53655904	http://en.wikipedia.org/?curid=51119931
+infobox-television_num-episodes_773241926-0_u	infobox-television_num-episodes_730656762-0_u
+
+Back to the Egg	-->	McCartney II
+http://en.wikipedia.org/?curid=884335	http://en.wikipedia.org/?curid=2328454
+infobox-album_recorded_15281358-0_u	infobox-album_recorded_19799273-0_u
+
+My Kind of Christmas	-->	Bionic (Christina Aguilera album)
+http://en.wikipedia.org/?curid=1223470	http://en.wikipedia.org/?curid=22202066
+infobox-album_released_19407455-0_u	infobox-album_released_294781696-0_u
+
+Wild Wild Life	-->	Cities (song)
+http://en.wikipedia.org/?curid=5680676	http://en.wikipedia.org/?curid=36846099
+infobox-song_genre_121120176-0_u	infobox-song_genre_509523371-0_u
+
+Girlfriend Is Better	-->	Cities (song)
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=36846099
+infobox-song_genre_324393983-0_u	infobox-song_genre_509523371-0_u
+
+Wild Wild Life	-->	Sax and Violins
+http://en.wikipedia.org/?curid=5680676	http://en.wikipedia.org/?curid=16837516
+infobox-song_genre_121120176-0_u	infobox-song_genre_204365999-0_u
+
+Girlfriend Is Better	-->	Sax and Violins
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=16837516
+infobox-song_genre_324393983-0_u	infobox-song_genre_204365999-0_u
+
+Vaastav: The Reality	-->	Saajan
+http://en.wikipedia.org/?curid=4089762	http://en.wikipedia.org/?curid=6533560
+infobox-film_gross_110132063-0_u	infobox-film_gross_70391265-0_u
+
+Wild Wild Life	-->	(Nothing But) Flowers
+http://en.wikipedia.org/?curid=5680676	http://en.wikipedia.org/?curid=4687523
+infobox-song_genre_121120176-0_u	infobox-song_genre_135175722-0_u
+
+Wild Wild Life	-->	And She Was
+http://en.wikipedia.org/?curid=5680676	http://en.wikipedia.org/?curid=4267960
+infobox-song_genre_121120176-0_u	infobox-song_genre_129880667-0_u
+
+Girlfriend Is Better	-->	And She Was
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=4267960
+infobox-song_genre_324393983-0_u	infobox-song_genre_129880667-0_u
+
+Girlfriend Is Better	-->	(Nothing But) Flowers
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=4687523
+infobox-song_genre_324393983-0_u	infobox-song_genre_135175722-0_u
+
+Girlfriend Is Better	-->	Crosseyed and Painless
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=23742066
+infobox-song_genre_324393983-0_u	infobox-song_genre_509379049-0_u
+
+Wild Wild Life	-->	Road to Nowhere
+http://en.wikipedia.org/?curid=5680676	http://en.wikipedia.org/?curid=2905575
+infobox-song_genre_121120176-0_u	infobox-song_genre_71412168-0_u
+
+Girlfriend Is Better	-->	Road to Nowhere
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=2905575
+infobox-song_genre_324393983-0_u	infobox-song_genre_71412168-0_u
+
+Girlfriend Is Better	-->	Wild Wild Life
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=5680676
+infobox-song_genre_324393983-0_u	infobox-song_genre_121120176-0_u
+
+Wild Wild Life	-->	Once in a Lifetime (Talking Heads song)
+http://en.wikipedia.org/?curid=5680676	http://en.wikipedia.org/?curid=3716083
+infobox-song_genre_121120176-0_u	infobox-song_genre_38195624-0_u
+
+Girlfriend Is Better	-->	Once in a Lifetime (Talking Heads song)
+http://en.wikipedia.org/?curid=8344562	http://en.wikipedia.org/?curid=3716083
+infobox-song_genre_324393983-0_u	infobox-song_genre_38195624-0_u
+
+Bionic (Christina Aguilera album)	-->	Back to Basics (Christina Aguilera album)
+http://en.wikipedia.org/?curid=22202066	http://en.wikipedia.org/?curid=4561898
+infobox-album_released_294781696-0_u	infobox-album_released_46525488-0_u
+
+Memoirs of an Imperfect Angel	-->	E=MC² (Mariah Carey album)
+http://en.wikipedia.org/?curid=22878898	http://en.wikipedia.org/?curid=10953974
+infobox-album_released_291726775-0_u	infobox-album_released_126717266-0_u
+
+Leveler (album)	-->	Messengers (album)
+http://en.wikipedia.org/?curid=31408864	http://en.wikipedia.org/?curid=11159556
+infobox-album_genre_422593754-0_u	infobox-album_genre_129916183-0_u
+
+Leveler (album)	-->	Constellations (August Burns Red album)
+http://en.wikipedia.org/?curid=31408864	http://en.wikipedia.org/?curid=22720189
+infobox-album_genre_422593754-0_u	infobox-album_genre_288582837-0_u
+
+Right Here (Jess Glynne song)	-->	Hold My Hand (Jess Glynne song)
+http://en.wikipedia.org/?curid=42944919	http://en.wikipedia.org/?curid=45186804
+infobox-song_from-album_615814896-0_i	infobox-song_album_651482849-0_i
+
+Right Here (Jess Glynne song)	-->	Hold My Hand (Jess Glynne song)
+http://en.wikipedia.org/?curid=42944919	http://en.wikipedia.org/?curid=45186804
+infobox-song_from-album_615814896-0_d	infobox-song_album_651482849-0_d
+
+Game of Thrones (season 5)	-->	Game of Thrones (season 4)
+http://en.wikipedia.org/?curid=43186905	http://en.wikipedia.org/?curid=38710170
+infobox-television-season_starring_618572990-0_u	infobox-television-season_starring_549021643-0_u
+
+Game of Thrones (season 6)	-->	Game of Thrones (season 5)
+http://en.wikipedia.org/?curid=43186937	http://en.wikipedia.org/?curid=43186905
+infobox-television-season_starring_672132045-0_u	infobox-television-season_starring_618572990-0_u
+
+Game of Thrones (season 5)	-->	Game of Thrones (season 6)
+http://en.wikipedia.org/?curid=43186905	http://en.wikipedia.org/?curid=43186937
+infobox-television-season_starring_618572990-0_u	infobox-television-season_starring_672132045-0_u
+
+62 / 951 external (6.52 %)
+
+Clusters:
+
+Cluster size 9:
+    Road to Nowhere    http://en.wikipedia.org/?curid=2905575
+    Wild Wild Life    http://en.wikipedia.org/?curid=5680676
+    And She Was    http://en.wikipedia.org/?curid=4267960
+    (Nothing But) Flowers    http://en.wikipedia.org/?curid=4687523
+    Sax and Violins    http://en.wikipedia.org/?curid=16837516
+    Crosseyed and Painless    http://en.wikipedia.org/?curid=23742066
+    Girlfriend Is Better    http://en.wikipedia.org/?curid=8344562
+    Once in a Lifetime (Talking Heads song)    http://en.wikipedia.org/?curid=3716083
+    Cities (song)    http://en.wikipedia.org/?curid=36846099
+
+Cluster size 3:
+    Game of Thrones (season 4)    http://en.wikipedia.org/?curid=38710170
+    Game of Thrones (season 5)    http://en.wikipedia.org/?curid=43186905
+    Game of Thrones (season 6)    http://en.wikipedia.org/?curid=43186937
+
+Cluster size 3:
+    Bionic (Christina Aguilera album)    http://en.wikipedia.org/?curid=22202066
+    My Kind of Christmas    http://en.wikipedia.org/?curid=1223470
+    Back to Basics (Christina Aguilera album)    http://en.wikipedia.org/?curid=4561898
+
+Cluster size 3:
+    Leveler (album)    http://en.wikipedia.org/?curid=31408864
+    Constellations (August Burns Red album)    http://en.wikipedia.org/?curid=22720189
+    Messengers (album)    http://en.wikipedia.org/?curid=11159556
+
+Cluster size 2:
+    Tere Mere Beech    http://en.wikipedia.org/?curid=48629399
+    Joru Ka Ghulam (2014 TV series)    http://en.wikipedia.org/?curid=47629798
+
+Cluster size 2:
+    Memoirs of an Imperfect Angel    http://en.wikipedia.org/?curid=22878898
+    E=MC² (Mariah Carey album)    http://en.wikipedia.org/?curid=10953974
+
+Cluster size 2:
+    My Little Secret    http://en.wikipedia.org/?curid=22865131
+    Off the Hook (Xscape album)    http://en.wikipedia.org/?curid=8583069
+
+Cluster size 2:
+    Mickey Mouse Clubhouse (season 2)    http://en.wikipedia.org/?curid=35572378
+    Mickey Mouse Clubhouse (season 3)    http://en.wikipedia.org/?curid=35572745
+
+Cluster size 2:
+    Agar Tum Saath Ho    http://en.wikipedia.org/?curid=51711782
+    TV Ke Uss Paar    http://en.wikipedia.org/?curid=51771013
+
+Cluster size 2:
+    Not Letting Go    http://en.wikipedia.org/?curid=46687613
+    Turn the Music Louder (Rumble)    http://en.wikipedia.org/?curid=48192118
+
+Cluster size 2:
+    Devanshi (TV series)    http://en.wikipedia.org/?curid=51119931
+    Bhaag Bakool Bhaag    http://en.wikipedia.org/?curid=53655904
+
+Cluster size 2:
+    Back to the Egg    http://en.wikipedia.org/?curid=884335
+    McCartney II    http://en.wikipedia.org/?curid=2328454
+
+Cluster size 2:
+    Vaastav: The Reality    http://en.wikipedia.org/?curid=4089762
+    Saajan    http://en.wikipedia.org/?curid=6533560
+
+Cluster size 2:
+    Hold My Hand (Jess Glynne song)    http://en.wikipedia.org/?curid=45186804
+    Right Here (Jess Glynne song)    http://en.wikipedia.org/?curid=42944919
+
+Cluster size 2:
+    Hold My Hand (Jess Glynne song)    http://en.wikipedia.org/?curid=45186804
+    Right Here (Jess Glynne song)    http://en.wikipedia.org/?curid=42944919
+
+ - Cluster sizes:
+    size 9 -  1
+    size 3 -  3
+    size 2 - 11
+end: 2021-08-04 09:49:53.193537
+duration: 0:00:08.495479

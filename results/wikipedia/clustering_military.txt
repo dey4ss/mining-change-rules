@@ -1,0 +1,42 @@
+start: 2021-08-04 09:49:55.215531
+
+Battle of Beicang	-->	Battle of Peking (1900)
+http://en.wikipedia.org/?curid=28830176	http://en.wikipedia.org/?curid=7449820
+infobox-military-conflict_commander1_384931616-0_u	infobox-military-conflict_commander1_81526711-0_u
+
+Republic of China Marine Corps	-->	Republic of China Air Force
+http://en.wikipedia.org/?curid=1716649	http://en.wikipedia.org/?curid=1717030
+infobox-military-unit_country_579253565-0_u	infobox-military-unit_country_291990587-0_u
+
+Siege of Halicarnassus	-->	Battle of the Persian Gate
+http://en.wikipedia.org/?curid=20474118	http://en.wikipedia.org/?curid=10462539
+infobox-military-conflict_combatant1_254914922-0_u	infobox-military-conflict_result_120313760-0_u
+
+Battle of Yangcun	-->	Battle of Beicang
+http://en.wikipedia.org/?curid=27914158	http://en.wikipedia.org/?curid=28830176
+infobox-military-conflict_combatant1_371297627-0_u	infobox-military-conflict_combatant1_384931616-0_u
+
+4 / 171 external (2.34 %)
+
+Clusters:
+
+Cluster size 2:
+    Battle of Peking (1900)    http://en.wikipedia.org/?curid=7449820
+    Battle of Beicang    http://en.wikipedia.org/?curid=28830176
+
+Cluster size 2:
+    Republic of China Marine Corps    http://en.wikipedia.org/?curid=1716649
+    Republic of China Air Force    http://en.wikipedia.org/?curid=1717030
+
+Cluster size 2:
+    Siege of Halicarnassus    http://en.wikipedia.org/?curid=20474118
+    Battle of the Persian Gate    http://en.wikipedia.org/?curid=10462539
+
+Cluster size 2:
+    Battle of Yangcun    http://en.wikipedia.org/?curid=27914158
+    Battle of Beicang    http://en.wikipedia.org/?curid=28830176
+
+ - Cluster sizes:
+    size 2 - 4
+end: 2021-08-04 09:50:03.577646
+duration: 0:00:08.362115

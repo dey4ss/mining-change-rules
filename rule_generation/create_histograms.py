@@ -20,34 +20,60 @@ def parse_args():
     bin_default = 11
     partition_default = 200
 
-    ap = argparse.ArgumentParser(description="Generates a list of changes with their occurrences, filtered by support.")
+    ap = argparse.ArgumentParser(description="Discovers change dependencies.")
     ap.add_argument(
-        "change_file", type=str, help="File with occurrences per change (expect Python dict as JSON)",
+        "change_file",
+        type=str,
+        help="File with occurrences per change (expect Python dict as JSON)",
     )
     ap.add_argument(
-        "timepoint_file", type=str, help="File with list of dates (JSON file)",
+        "timepoint_file",
+        type=str,
+        help="File with list of dates (JSON file)",
     )
     ap.add_argument("output", type=str, help=f"Output file path")
     ap.add_argument(
-        "--min_sup", type=float, help=f"Minimal support. Default {min_sup_default}", default=min_sup_default,
+        "--min_sup",
+        type=float,
+        help=f"Minimal support. Default {min_sup_default}",
+        default=min_sup_default,
     )
     ap.add_argument(
-        "--max_sup", type=float, help=f"Maximal support. Default {max_sup_default}", default=max_sup_default,
+        "--max_sup",
+        type=float,
+        help=f"Maximal support. Default {max_sup_default}",
+        default=max_sup_default,
     )
     ap.add_argument(
-        "--min_conf", type=float, help=f"Minimal Confidence. Default {min_conf_default}", default=min_conf_default,
+        "--min_conf",
+        type=float,
+        help=f"Minimal Confidence. Default {min_conf_default}",
+        default=min_conf_default,
     )
     ap.add_argument(
-        "--num_bins", type=int, help=f"Bin count. Default {bin_default}", default=bin_default,
+        "--num_bins",
+        type=int,
+        help=f"Bin count. Default {bin_default}",
+        default=bin_default,
     )
     ap.add_argument(
-        "--partition_size", type=int, help=f"Partition Size. Default {partition_default}", default=partition_default,
+        "--partition_size",
+        "-s",
+        type=int,
+        help=f"Partition Size. Default {partition_default}",
+        default=partition_default,
     )
     ap.add_argument(
-        "--threads", "-t", type=int, help=f"Number of threads. Default {thread_default}", default=thread_default,
+        "--threads",
+        "-t",
+        type=int,
+        help=f"Number of threads. Default {thread_default}",
+        default=thread_default,
     )
     ap.add_argument(
-        "--extensive_log", action="store_true", help=f"Detailed log messages",
+        "--extensive_log",
+        action="store_true",
+        help=f"Detailed log messages",
     )
     return vars(ap.parse_args())
 
@@ -247,11 +273,20 @@ def create_histograms(args):
     with open(args["change_file"]) as f:
         all_changes = json.load(f)
 
+    whitelist = None
+    if args["whitelist"]:
+        with open(args["whitelist"]) as f:
+            whitelist = set(json.load(f))
+
     # build index date -> changes
     # remove change if min support to low
     daily_changes = defaultdict(set)
     too_infrequent_changes = set()
+    blacklist_changes = set()
     for change, occurrences in all_changes.items():
+        if whitelist and (not change.split("_")[0] in whitelist):
+            blacklist_changes.add(change)
+            continue
         if len(occurrences) < min_support_threshold or len(occurrences) > max_support_threshold:
             too_infrequent_changes.add(change)
             continue
@@ -259,8 +294,12 @@ def create_histograms(args):
             daily_changes[date].add(change)
     for change in too_infrequent_changes:
         del all_changes[change]
+    for change in blacklist_changes:
+        del all_changes[change]
 
     changes = list(all_changes.keys())
+    if whitelist:
+        print(f"ignoring changes not within {whitelist}")
     print(f"input: {len(changes)} changes with {min_sup} <= sup(X) <= {max_sup}")
 
     # partition change index
@@ -284,7 +323,7 @@ def create_histograms(args):
     num_threads = args["threads"]
     if num_combinations < num_threads:
         print(
-            "[WARNING] Number of threads exceeds partition combinations.",
+            "[INFO] Number of threads exceeds partition combinations.",
             f"{num_threads - num_combinations} core(s) will not be used.",
         )
 

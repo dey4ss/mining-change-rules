@@ -10,10 +10,15 @@ from datetime import datetime
 def parse_args():
     ap = argparse.ArgumentParser(description="Preprocesses aggregated changes.")
     ap.add_argument(
-        "change_file", type=str, help="File with occurences per change (expect Python dict as .json)",
+        "change_file",
+        type=str,
+        help="File with occurences per change (expect Python dict as .json)",
     )
     ap.add_argument(
-        "--filter_periodic", "-fp", action="store_true", help="Remove periodic changes",
+        "--filter_periodic",
+        "-fp",
+        action="store_true",
+        help="Remove periodic changes",
     )
     ap.add_argument(
         "--periodic_threshold",
@@ -27,9 +32,7 @@ def parse_args():
 def start_day_representation(num_changes, occurences):
     if num_changes < 200000 or len(occurences) < 2:
         return occurences[0]
-    # if num_changes < 1000000:
     return f"{occurences[0]}-{occurences[1]}"
-    # return f"{occurences[0]}-{occurences[1]}-{occurences[2]}"
 
 
 def group_simultaneous_changes(all_changes):
@@ -154,7 +157,7 @@ def main(args):
     print(f"{len(all_changes)} changes remaining")
 
     prefix = ".".join(args["change_file"].split(".")[:-1])
-    with open(f"{prefix}_change_groupsd.json", "w") as f:
+    with open(f"{prefix}_change_groups.json", "w") as f:
         json.dump(simultaneous_changes, f)
 
     with open(f"{prefix}_grouped.json", "w") as f:

@@ -34,7 +34,16 @@ def main(change_dir, threads):
         result_lock = manager.RLock()
         tables = manager.dict()
         workers = [
-            mp.Process(target=daily_statistics, args=(job_queue, change_dir, tables, result_lock, f"{n}".rjust(2),),)
+            mp.Process(
+                target=daily_statistics,
+                args=(
+                    job_queue,
+                    change_dir,
+                    tables,
+                    result_lock,
+                    f"{n}".rjust(2),
+                ),
+            )
             for n in range(threads)
         ]
 

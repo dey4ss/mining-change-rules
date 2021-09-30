@@ -6,8 +6,10 @@ This is the central code repository of the [_Discovering Change Dependencies_](h
 
 Changes in databases occur permanently.
 The aim of this project is to discover dependencies within these changes.
-We base our research on open-government data provided by [Socrata](https://www.tylertech.com/products/socrata).
-As part of the [IANVS project](https://hpi.de/naumann/projects/data-profiling-and-analytics/change-exploration.html), all public datasets have been received before on a daily basis during one year.
+We base our research on infobox modifications from [Wikipedia](https://en.wikipedia.org/wiki/Main_Page) and open-government data provided by [Socrata](https://www.tylertech.com/products/socrata).
+For the Wikipedia data, changes of infoboxes have been extracted [previously](https://hpi.de/naumann/projects/data-profiling-and-analytics/change-exploration/structured-object-matching-across-web-page-revisions.html).
+
+For Socrata, all public datasets have been received before on a daily basis during one year as part of the [IANVS project](https://hpi.de/naumann/projects/data-profiling-and-analytics/change-exploration.html).
 Pre-processing has been done to identify columns and rows, thus, our data basis consists of completely re-constructed relational tables as JSON files.
 Whenever such a table is being changed, there is a file in our dataset containing the whole table, corresponding to the time point of the change.
 Out of these files, we extract the changes, transform them, and generate rules for change dependencies.
@@ -20,6 +22,12 @@ Scripts to get in touch with the data.
 `count_changes.py` aggregates extracted change data s.t. we get an overview on how often changes occcur.
 
 `aggregated_change_counts.py` summarizes the number of aggregated changes per entity level and change type.
+
+`wiki_infoboxes.py` extracts how often specific Wikipedia infobox templates exist in the data.
+
+`wiki_pages_per_template.py` counts infobox templates.
+
+`template_keys_to_pageID.py` matches template keys and page IDs, so that we can easily match the page name later.
 
 ## preprocessing
 Scripts to transform the given data into the format our proposed algorithm accepts.
@@ -40,10 +48,18 @@ The output is an index of changes to their occurrences.
 `preprocess_changes.py` uses this index and groups changes that always occur together.
 If desired, changes that happen regularly are filtered out.
 
+`exptract_wiki_changes.py` extracts changes to Wikipedia infoboxes of given categories from the provided 7z files and formats them for us.
+
+`filter_wiki_support.py` filters these changes by support thresholds.
+
+`limit_wiki_changes.py` filters these changes by year.
+
 ## rule_generation
 Scripts to find and score change dependencies.
 
 `create_histograms.py` mines rules out of an index of changes to their occurrences.
+
+`create_histograms_yearwise.py` orchestrates the Wikipedia mining for given years and infobox categories.
 
 `map_domains.py` is specific to our dataset.
 Multiple agencies publish data in the socrata data lake, and we want to ensure that the discovered rules share the same _domain_.
@@ -66,13 +82,9 @@ Scripts to measure the rule generation.
 
 `change_occurrence_distribution.py` generates a histogram of the number of occurrences per change.
 
-## data
+`merge_rules.py` aggregates change dependencies for given categories and clusters them if requested.
 
-`actual_days.json` contains a list of time points.
+## results
 
-`change_groups.json` contains a mapping of groups of changes to the actual changes.
-
-`column_changes_aggregated_grouped.json` contains an index from changes or change groups to their occurrences.
-
-`interestingness_validity_results.csv` contains the interestingness and validity results.
+Contains results for both datasets.
 

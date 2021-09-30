@@ -1,0 +1,100 @@
+start: 2021-08-04 09:50:16.175279
+
+Richard Byron, 2nd Baron Byron	-->	John Byron, 1st Baron Byron
+http://en.wikipedia.org/?curid=25215044	http://en.wikipedia.org/?curid=1656307
+infobox-officeholder_name_328106241-0_u	infobox-officeholder_name_817283023-0_u
+
+William Byron, 5th Baron Byron	-->	William Byron, 4th Baron Byron
+http://en.wikipedia.org/?curid=561795	http://en.wikipedia.org/?curid=25213852
+infobox-officeholder_name_381225283-0_u	infobox-officeholder_name_328087624-0_u
+
+William Byron, 3rd Baron Byron	-->	Richard Byron, 2nd Baron Byron
+http://en.wikipedia.org/?curid=25214304	http://en.wikipedia.org/?curid=25215044
+infobox-officeholder_name_328093844-0_u	infobox-officeholder_name_328106241-0_u
+
+William Byron, 3rd Baron Byron	-->	William Byron, 4th Baron Byron
+http://en.wikipedia.org/?curid=25214304	http://en.wikipedia.org/?curid=25213852
+infobox-officeholder_name_328093844-0_u	infobox-officeholder_name_328087624-0_u
+
+2018 United States Senate election in California	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote2_750419922-0_u	infobox-election_popular-vote2_704608295-0_u
+
+2018 United States Senate election in California	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote2_750419922-0_u	infobox-election_popular-vote1_704608295-0_u
+
+2018 United States Senate election in California	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote1_750419922-0_u	infobox-election_popular-vote2_704608295-0_u
+
+2018 United States Senate election in California	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote1_750419922-0_u	infobox-election_popular-vote1_704608295-0_u
+
+John Byron, 1st Baron Byron	-->	Richard Byron, 2nd Baron Byron
+http://en.wikipedia.org/?curid=1656307	http://en.wikipedia.org/?curid=25215044
+infobox-officeholder_name_817283023-0_u	infobox-officeholder_name_328106241-0_u
+
+John Sparrow David Thompson	-->	John Abbott
+http://en.wikipedia.org/?curid=15908	http://en.wikipedia.org/?curid=98531
+infobox-officeholder_order1_35282606-0_u	infobox-officeholder_order1_35281930-0_u
+
+2018 United States Senate election in California	-->	2018 California lieutenant gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=51454156
+infobox-election_popular-vote2_750419922-0_u	infobox-election_popular-vote1_736771950-0_u
+
+2018 United States Senate election in California	-->	2018 California lieutenant gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=51454156
+infobox-election_popular-vote2_750419922-0_u	infobox-election_popular-vote2_736771950-0_u
+
+2018 United States Senate election in California	-->	2018 California lieutenant gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=51454156
+infobox-election_popular-vote1_750419922-0_u	infobox-election_popular-vote1_736771950-0_u
+
+2018 United States Senate election in California	-->	2018 California lieutenant gubernatorial election
+http://en.wikipedia.org/?curid=51043231	http://en.wikipedia.org/?curid=51454156
+infobox-election_popular-vote1_750419922-0_u	infobox-election_popular-vote2_736771950-0_u
+
+2018 California lieutenant gubernatorial election	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51454156	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote1_736771950-0_u	infobox-election_popular-vote2_704608295-0_u
+
+2018 California lieutenant gubernatorial election	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51454156	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote1_736771950-0_u	infobox-election_popular-vote1_704608295-0_u
+
+2018 California lieutenant gubernatorial election	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51454156	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote2_736771950-0_u	infobox-election_popular-vote2_704608295-0_u
+
+2018 California lieutenant gubernatorial election	-->	2018 California gubernatorial election
+http://en.wikipedia.org/?curid=51454156	http://en.wikipedia.org/?curid=45370906
+infobox-election_popular-vote2_736771950-0_u	infobox-election_popular-vote1_704608295-0_u
+
+18 / 649 external (2.77 %)
+
+Clusters:
+
+Cluster size 5:
+    William Byron, 3rd Baron Byron    http://en.wikipedia.org/?curid=25214304
+    Richard Byron, 2nd Baron Byron    http://en.wikipedia.org/?curid=25215044
+    William Byron, 4th Baron Byron    http://en.wikipedia.org/?curid=25213852
+    John Byron, 1st Baron Byron    http://en.wikipedia.org/?curid=1656307
+    William Byron, 5th Baron Byron    http://en.wikipedia.org/?curid=561795
+
+Cluster size 3:
+    2018 California gubernatorial election    http://en.wikipedia.org/?curid=45370906
+    2018 California lieutenant gubernatorial election    http://en.wikipedia.org/?curid=51454156
+    2018 United States Senate election in California    http://en.wikipedia.org/?curid=51043231
+
+Cluster size 2:
+    John Sparrow David Thompson    http://en.wikipedia.org/?curid=15908
+    John Abbott    http://en.wikipedia.org/?curid=98531
+
+ - Cluster sizes:
+    size 5 - 1
+    size 3 - 1
+    size 2 - 1
+end: 2021-08-04 09:50:24.655904
+duration: 0:00:08.480625
