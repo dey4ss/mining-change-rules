@@ -1,10 +1,28 @@
+#!/usr/bin/python3
+
 from operator import itemgetter
+import argparse
 import json
 import random
 from scipy.special import logsumexp
-import utils
 import numpy as np
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + f"{os.sep}..")
+from util import util
+
+
+def parse_args():
+    ap = argparse.ArgumentParser(description="Ranks change dependencies by interestingness")
+    ap.add_argument("data_path", type=str, help="Path to a CSV file containing rules")
+    ap.add_argument("output_dir", type=str, help="Directory to store results")
+    ap.add_argument("--num_timepoints", "-t", type=int, help="Number of timepoints", default=365)
+    ap.add_argument("--conf", type=float, help="Confidence", default=0.9)
+    ap.add_argument("--min_sup", type=float, help="Minimum support", default=0.05)
+    ap.add_argument("--max_sup", type=float, help="Confidence", default=0.1)
+    return ap.parse_args()
+
 
 ######## Kullback Leiber Divergence ########
 def kl_divergence(p, q):
@@ -20,9 +38,9 @@ def js_divergence(p, q):
 
 
 ######## Calculates probability distribution and interestingness scores ########
-def hist2pdf(data_path, output_dir, days_t=365.0, conf_t=0.9, min_sup_t=0.05, max_sup_t=0.1, antecent=True):
+def hist2pdf(data_path, output_dir, days_t=365.0, conf_t=0.9, min_sup_t=0.05, max_sup_t=0.1):
 
-    data = utils.read_rules(data_path)  # use `json.loads` to do the reverse
+    data = util.read_rules(data_path)  # use `json.loads` to do the reverse
     high_scores = []
     # Sample one rule within thresholds from each ancedent and sample
     general_sample = [
@@ -62,14 +80,14 @@ def hist2pdf(data_path, output_dir, days_t=365.0, conf_t=0.9, min_sup_t=0.05, ma
                 or (histogram[1] < conf_t)
             ):
                 continue
-            domain_rule = histogram[4]
+            # domain_rule = histogram[4]
             histogram = histogram[3]
             rule_absolute_support = sum(histogram)
             days_relative_support = []
             for day_support in histogram:
                 days_relative_support.append(day_support / rule_absolute_support)
             score = js_divergence(np.array(general_pdf), np.array(days_relative_support))
-            high_scores.append((str(entity_i + " => " + entity_j), days_relative_support, score, domain_rule))
+            high_scores.append((str(entity_i + " => " + entity_j), days_relative_support, score))
 
     high_scores = sorted(high_scores, key=itemgetter(2), reverse=True)
 
@@ -77,3 +95,8 @@ def hist2pdf(data_path, output_dir, days_t=365.0, conf_t=0.9, min_sup_t=0.05, ma
         file.write(json.dumps(high_scores))  # use `json.loads` to do the reverse
     with open(os.path.join(output_dir, "general_pdf.txt"), "w+") as file:
         file.write(json.dumps(general_pdf))  # use `json.loads` to do the reverse
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    hist2pdf(args.data_path, args.output_dir, args.num_timepoints, args.conf, args.min_sup, args.max_sup)

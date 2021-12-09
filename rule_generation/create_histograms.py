@@ -244,11 +244,8 @@ def get_histograms_of_partitions(
             del hists[antecedent][consequent]
 
     for antecedent, my_consequents in hists.items():
-        # ant_support = len(antecedents[antecedent]) / len(days)
         ant_support = len(antecedents[antecedent])
         for consequent, hist in my_consequents.items():
-            # print(consequent)
-            # print(len(consequents[consequent]))
             cons_support = len(consequents[consequent])
             hist.lift = hist.abs_support() / (ant_support * cons_support)
 
@@ -274,7 +271,7 @@ def create_histograms(args):
         all_changes = json.load(f)
 
     whitelist = None
-    if args["whitelist"]:
+    if "whitelist" in args and args["whitelist"]:
         with open(args["whitelist"]) as f:
             whitelist = set(json.load(f))
 
