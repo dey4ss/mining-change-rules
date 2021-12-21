@@ -1,4 +1,6 @@
-# Discovering Change Dependencies
+# Mining Change Rules
+
+### This repository is retired and has been moved to [HPI-Information-Systems/mining-change-rules](https://github.com/HPI-Information-Systems/mining-change-rules).
 
 This is the central code repository of the [_Discovering Change Dependencies_](https://hpi.de/naumann/teaching/master-projects/discovering-change-dependencies.html) master's project at the [chair of Prof. Naumann](https://hpi.de/naumann/home.html) at [HPI](https://hpi.de/).
 
